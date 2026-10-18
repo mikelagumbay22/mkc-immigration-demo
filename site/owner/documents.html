@@ -1,0 +1,22 @@
+<!doctype html><html lang="en-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Documents | MKC Demo Dashboard</title>
+<link rel="icon" href="../assets/favicon.ico"><link rel="stylesheet" href="../assets/dashboard.css">
+<script>(function(){var r=sessionStorage.getItem('mkc_demo_role');if(r!=='owner'){location.replace('../login.html');}})();</script>
+</head><body data-page="documents" data-role="owner">
+<a class="skip" href="#main" style="position:absolute;left:-9999px">Skip to content</a>
+<div class="topbar"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="150" height="46"><button class="btn" type="button" data-menu aria-expanded="false" aria-controls="sideNav">☰ Menu</button></div>
+<div class="dash">
+<aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p><span class="demo-pill">Demo — sample data only</span></p><p>Signed in as<br><strong>Owner (demo)</strong></p><nav aria-label="Dashboard"><a href="dashboard.html">Dashboard</a><a href="clients.html">Clients</a><a href="documents.html" aria-current="page">Documents</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav><p style="margin-top:auto;font-size:.8rem;color:#93a9c6">Demo only — this login is not real security and there is no backend. Sample data lives in your browser (localStorage).</p></aside>
+<main class="main" id="main">
+<p><span class="demo-pill">Demo — sample data only</span></p><h1>Document requirements library</h1>
+<p class="muted">This library is sample/demo system data. Categories below are demo library categories only — they do not confirm MKC’s public services, which should be confirmed with the consultancy.</p>
+<div class="card"><label for="dType">Filter by application type</label><select id="dType"><option value="">All types</option><option>Tourist Visa</option><option>Visitor Visa</option><option>Work Permit</option><option>Permanent Resident</option><option>Student</option><option>Citizenship</option><option>General Consulting</option></select></div>
+<div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Document</th><th>Version</th><th>Application type</th><th>Status</th><th>Created</th><th>Updated</th><th>Uploaded (sample)</th><th></th></tr></thead><tbody id="docRows"></tbody></table></div>
+<form id="docForm" class="card" style="margin-top:18px"><h2>Add / edit document (demo)</h2><input type="hidden" id="docId">
+<label for="docName">Document name</label><input id="docName" required>
+<label for="docTypeForm">Application type</label><select id="docTypeForm"><option>Tourist Visa</option><option>Visitor Visa</option><option>Work Permit</option><option>Permanent Resident</option><option>Student</option><option>Citizenship</option><option>General Consulting</option></select>
+<label for="docVersion">Version</label><input id="docVersion" placeholder="v1.0">
+<label for="docStatus">Status</label><select id="docStatus"><option>Active</option><option>Draft</option></select>
+<p id="docMsg" role="status" aria-live="polite"></p><button class="btn navy" type="submit">Save document (demo)</button></form></main></div>
+<script src="../assets/demo-data.js"></script><script src="../assets/dashboard.js"></script>
+</body></html>

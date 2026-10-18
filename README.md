@@ -5,3 +5,16 @@ Evidence: `/workspace/research/mkc-immigration-research.md` only. See HTML comme
 ## Logo & hero video (added 2026-10-17)
 - Logo: Concept A Heritage Seal, gold-on-navy, identifier `concept-a-leafred` (source `logo-concepts/leaf-red/concept-a-leafred/gold/`). Copied: `site/assets/logo-lockup-dark.svg/.png` (header/footer), `logo-lockup.svg/.png`, `logo-mark.svg`, `logo-app-icon-512.png`; favicons derived from app icon (`favicon.ico`, `favicon-16/32.png`). Temporary/swappable.
 - Hero video: Pexels 34178132 "Toronto Skyline with CN Tower by the Lake" by WeStarMoney Rec — https://www.pexels.com/video/toronto-skyline-with-cn-tower-by-the-lake-34178132/ Licence verified 2026-10-17 at https://www.pexels.com/license/ (all Pexels videos free to use/modify, attribution not required; credit in footer as appreciation). Source 3840x2160 30fps 7.5s recompressed locally to `site/assets/hero-toronto.mp4` 1280x720/no audio; poster `site/assets/hero-poster.jpg` (frame at 2s). Higgsfield credits spent: 0.
+
+## Multi-page demo + dashboards (2026-10-18)
+### Run preview
+Open `dist/index.html` in a browser, or serve the folder: `python3 -m http.server 8000 -d dist` then visit http://localhost:8000 . All paths are relative; dashboards are in `dist/client/` and `dist/owner/`.
+### Public pages
+`index.html` (Home, hero video), `about.html`, `services.html`, `process.html`, `reviews.html`, `faq.html`, `contact.html`, `login.html`. Chat bot runs on public marketing pages only (not dashboards).
+### Demo credentials (displayed on login page; no real auth/backend/security)
+- Client: `client@demo.ca` / `client123` -> `client/dashboard.html`
+- Owner: `owner@demo.ca` / `owner123` -> `owner/dashboard.html`
+Any other credentials show an error. A demo role flag (`mkc_demo_role`) is kept in sessionStorage; dashboard pages redirect to login without the matching role (demo guard only, NOT security). Sign out clears the flag.
+### Demo data / reset
+Single shared store `site/assets/demo-data.js`, localStorage key `mkc_demo_v1`, seeded once (25 sample clients, 26 applications, sample checklists/tasks/announcements/documents). Use **Reset demo data** on the client dashboard or Profile page to clear and reseed. Editable profile, task checkboxes, checklist state, owner-added applications and documents all save to that same localStorage key.
+**Uploads:** the application checklist Upload control is a demo. On change it stores ONLY the file name + Done state in localStorage - file contents/dataURLs are never read or stored. Do not enter real personal information anywhere in this demo.

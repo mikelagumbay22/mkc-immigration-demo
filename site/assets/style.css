@@ -54,3 +54,10 @@ footer{background:#071426;color:#c8d7ec;padding:52px 0 30px}footer a{color:#f3d9
 .hero .hero-grid{position:relative;z-index:1}
 @media(max-width:560px){.logo-lockup{width:168px;height:51px}.footer-logo{width:220px;height:67px}}
 @media(prefers-reduced-motion:reduce){.hero-media video{display:none}}
+.page-hero{background:radial-gradient(900px 500px at 85% -10%,#1d4a86 0,transparent 55%),linear-gradient(135deg,var(--navy) 0%,var(--navy2) 58%,#0a2a57 100%);color:#fff;padding:72px 0 60px}
+.page-hero h1{color:#fff;font-size:clamp(2.4rem,5vw,3.8rem);font-weight:500;max-width:800px}
+.nav-actions{display:flex;gap:10px;align-items:center;flex:none}
+.btn.ghost-light{background:transparent;color:#fff!important;border-color:rgba(255,255,255,.6)}
+.menu-toggle{display:none;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.55);border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;min-height:44px}
+@media(max-width:1020px){nav ul{gap:18px}}
+@media(max-width:900px){.menu-toggle{display:block}.nav{flex-wrap:wrap;padding:10px 0}header nav{order:3;width:100%}#mainNav{display:none;flex-direction:column;gap:4px;padding:10px 0}#mainNav.open{display:flex}#mainNav a{display:block;padding:10px 0}.nav-actions .btn{padding:10px 14px;font-size:.88rem}}

@@ -1,0 +1,16 @@
+<!doctype html><html lang="en-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Client Dashboard | MKC Demo Dashboard</title>
+<link rel="icon" href="../assets/favicon.ico"><link rel="stylesheet" href="../assets/dashboard.css">
+<script>(function(){var r=sessionStorage.getItem('mkc_demo_role');if(r!=='client'){location.replace('../login.html');}})();</script>
+</head><body data-page="client-dashboard" data-role="client">
+<a class="skip" href="#main" style="position:absolute;left:-9999px">Skip to content</a>
+<div class="topbar"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="150" height="46"><button class="btn" type="button" data-menu aria-expanded="false" aria-controls="sideNav">☰ Menu</button></div>
+<div class="dash">
+<aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p><span class="demo-pill">Demo — sample data only</span></p><p>Signed in as<br><strong>Sample Client (demo)</strong></p><nav aria-label="Dashboard"><a href="dashboard.html" aria-current="page">Dashboard</a><a href="application.html?id=a1">My Applications</a><a href="tasks.html">Tasks</a><a href="profile.html">Profile</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav><p style="margin-top:auto;font-size:.8rem;color:#93a9c6">Demo only — this login is not real security and there is no backend. Sample data lives in your browser (localStorage).</p></aside>
+<main class="main" id="main">
+<p><span class="demo-pill">Demo — sample data only</span></p><h1>Welcome, Sample Client</h1><p class="muted">This is a demo dashboard with sample data only. Nothing here is a real case.</p>
+<h2>Owner updates</h2><div class="cards" id="announcements"></div>
+<h2>My Applications</h2><div class="cards" id="appCards"></div>
+<p><button class="btn ghost" id="resetDemo" type="button">Reset demo data</button></p></main></div>
+<script src="../assets/demo-data.js"></script><script src="../assets/dashboard.js"></script>
+</body></html>
