@@ -16,5 +16,13 @@ Open `dist/index.html` in a browser, or serve the folder: `python3 -m http.serve
 - Owner: `owner@demo.ca` / `owner123` -> `owner/dashboard.html`
 Any other credentials show an error. A demo role flag (`mkc_demo_role`) is kept in sessionStorage; dashboard pages redirect to login without the matching role (demo guard only, NOT security). Sign out clears the flag.
 ### Demo data / reset
-Single shared store `site/assets/demo-data.js`, localStorage key `mkc_demo_v1`, seeded once (25 sample clients, 26 applications, sample checklists/tasks/announcements/documents). Use **Reset demo data** on the client dashboard or Profile page to clear and reseed. Editable profile, task checkboxes, checklist state, owner-added applications and documents all save to that same localStorage key.
+Single shared store `site/assets/demo-data.js`, localStorage key `mkc_demo_v2`, seeded once (25 sample clients, 26 applications, sample checklists/tasks/announcements/documents). Use **Reset demo data** on the client dashboard or Profile page to clear and reseed. Editable profile, task checkboxes, checklist state, owner-added applications and documents all save to that same localStorage key.
 **Uploads:** the application checklist Upload control is a demo. On change it stores ONLY the file name + Done state in localStorage - file contents/dataURLs are never read or stored. Do not enter real personal information anywhere in this demo.
+
+## Owner admin updates (2026-10-19)
+- Store bumped to `mkc_demo_v2`. If `mkc_demo_v1` data exists it is migrated once (clients/applications kept; `Permanent Resident`->`Permanent Residence`, `Student`->`Student Visa`; checklist Done/filename state carried by keyword), otherwise v2 seeds fresh. Reset clears both keys and reseeds v2.
+- **Visas are the source of truth** (`owner/visas.html`, in owner nav): canonical types Work Permit, Visitor Visa, Tourist Visa, Permanent Residence, Student Visa, Citizenship, General Consulting. Dropdowns (Add client, Edit client, owner Add application, documents filter) draw from these names. A client application's checklist is derived from its visa's required-documents list, preserving Done/filename by document id; client Tasks missing list follows automatically.
+- Seeded visas have sample effective dates/notes and sample required sets using Documents library items (library expanded to 14 sample documents so every required item exists in the picker).
+- **Document delete behaviour:** deleting a document (styled demo confirm) also removes it from every visa's required list, so client checklists update consistently.
+- Document/client/visa add & edit are accessible modals (dialog roles, Escape closes, focus returns). Document sample uploads and checklist uploads store filenames only.
+- The visible Pexels footer credit line was removed from all public pages (2026-10-19); the licence note remains in this README and in an HTML comment on the home page.
