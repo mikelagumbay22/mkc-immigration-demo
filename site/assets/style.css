@@ -62,7 +62,7 @@ footer{background:#071426;color:#c8d7ec;padding:52px 0 30px}footer a{color:#f3d9
 @media(max-width:1020px){nav ul{gap:18px}}
 @media(max-width:900px){.menu-toggle{display:block}.nav{flex-wrap:wrap;padding:10px 0}header nav{order:3;width:100%}#mainNav{display:none;flex-direction:column;gap:4px;padding:10px 0}#mainNav.open{display:flex}#mainNav a{display:block;padding:10px 0}.nav-actions .btn{padding:10px 14px;font-size:.88rem}}
 
-.morris-photo{margin:0 0 24px}.morris-photo img{width:min(320px,100%);height:auto;aspect-ratio:4/5;object-fit:cover;border-radius:22px;border:3px solid var(--gold);display:block}
+.morris-photo{margin:0 0 24px;background:#fff;padding:14px;border:1px solid var(--line);border-top:3px solid var(--gold);border-radius:22px;box-shadow:0 14px 34px rgba(10,31,61,.10);width:min(348px,100%)}.morris-photo img{width:100%;height:auto;aspect-ratio:4/5;object-fit:contain;border-radius:12px;display:block;background:#fff}
 .credentials-card{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
 .cicc-logo{width:260px;max-width:100%;height:auto;background:#fff}
 .cred-number{font-family:Georgia,serif;font-size:1.5rem;color:var(--navy);margin:4px 0}
