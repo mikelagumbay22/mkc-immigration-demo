@@ -13,20 +13,20 @@ var ALIAS={'Permanent Resident':'Permanent Residence','Student':'Student Visa','
 function alias(t){return ALIAS[t]||t;}
 function today(){return new Date().toISOString().slice(0,10);}
 function docsSeed(){return [
- {id:'d1',name:'Passport information page (sample)',version:'v1.0',type:'Work Permit',status:'Active',createdAt:'2026-09-01',updatedAt:'2026-09-01',uploaded:8,sampleFileName:''},
- {id:'d2',name:'Government forms — signed (sample)',version:'v1.2',type:'Work Permit',status:'Active',createdAt:'2026-09-03',updatedAt:'2026-09-20',uploaded:6,sampleFileName:''},
- {id:'d3',name:'Photos meeting specifications (sample)',version:'v1.0',type:'Visitor Visa',status:'Active',createdAt:'2026-09-05',updatedAt:'2026-09-05',uploaded:5,sampleFileName:''},
- {id:'d4',name:'Supporting letters (sample)',version:'v0.9',type:'Permanent Residence',status:'Draft',createdAt:'2026-09-10',updatedAt:'2026-10-02',uploaded:2,sampleFileName:''},
- {id:'d5',name:'Fee receipts (sample)',version:'v1.0',type:'Citizenship',status:'Active',createdAt:'2026-09-12',updatedAt:'2026-09-12',uploaded:4,sampleFileName:''},
- {id:'d6',name:'Study documents checklist (sample)',version:'v0.5',type:'Student Visa',status:'Draft',createdAt:'2026-09-15',updatedAt:'2026-10-01',uploaded:0,sampleFileName:''},
- {id:'d7',name:'Travel itinerary (sample)',version:'v1.0',type:'Tourist Visa',status:'Active',createdAt:'2026-09-18',updatedAt:'2026-09-18',uploaded:3,sampleFileName:''},
- {id:'d8',name:'Employment letter (sample)',version:'v1.1',type:'Work Permit',status:'Active',createdAt:'2026-09-22',updatedAt:'2026-10-05',uploaded:7,sampleFileName:''},
- {id:'d9',name:'Proof of funds (sample)',version:'v1.0',type:'Tourist Visa',status:'Active',createdAt:'2026-09-24',updatedAt:'2026-09-24',uploaded:2,sampleFileName:''},
- {id:'d10',name:'Invitation letter (sample)',version:'v1.0',type:'Visitor Visa',status:'Active',createdAt:'2026-09-25',updatedAt:'2026-09-25',uploaded:3,sampleFileName:''},
- {id:'d11',name:'Language test results (sample)',version:'v1.0',type:'Permanent Residence',status:'Active',createdAt:'2026-09-26',updatedAt:'2026-09-26',uploaded:2,sampleFileName:''},
- {id:'d12',name:'Residence history summary (sample)',version:'v1.0',type:'Citizenship',status:'Active',createdAt:'2026-09-27',updatedAt:'2026-09-27',uploaded:1,sampleFileName:''},
- {id:'d13',name:'School acceptance letter (sample)',version:'v1.0',type:'Student Visa',status:'Active',createdAt:'2026-09-28',updatedAt:'2026-09-28',uploaded:2,sampleFileName:''},
- {id:'d14',name:'Consultation notes (sample)',version:'v1.0',type:'General Consulting',status:'Active',createdAt:'2026-09-29',updatedAt:'2026-09-29',uploaded:1,sampleFileName:''}];}
+ {id:'d1',name:'Passport information page (sample)',version:'v1.0',status:'Active',createdAt:'2026-09-01',updatedAt:'2026-09-01',uploaded:8,sampleFileName:''},
+ {id:'d2',name:'Government forms — signed (sample)',version:'v1.2',status:'Active',createdAt:'2026-09-03',updatedAt:'2026-09-20',uploaded:6,sampleFileName:''},
+ {id:'d3',name:'Photos meeting specifications (sample)',version:'v1.0',status:'Active',createdAt:'2026-09-05',updatedAt:'2026-09-05',uploaded:5,sampleFileName:''},
+ {id:'d4',name:'Supporting letters (sample)',version:'v0.9',status:'Draft',createdAt:'2026-09-10',updatedAt:'2026-10-02',uploaded:2,sampleFileName:''},
+ {id:'d5',name:'Fee receipts (sample)',version:'v1.0',status:'Active',createdAt:'2026-09-12',updatedAt:'2026-09-12',uploaded:4,sampleFileName:''},
+ {id:'d6',name:'Study documents checklist (sample)',version:'v0.5',status:'Draft',createdAt:'2026-09-15',updatedAt:'2026-10-01',uploaded:0,sampleFileName:''},
+ {id:'d7',name:'Travel itinerary (sample)',version:'v1.0',status:'Active',createdAt:'2026-09-18',updatedAt:'2026-09-18',uploaded:3,sampleFileName:''},
+ {id:'d8',name:'Employment letter (sample)',version:'v1.1',status:'Active',createdAt:'2026-09-22',updatedAt:'2026-10-05',uploaded:7,sampleFileName:''},
+ {id:'d9',name:'Proof of funds (sample)',version:'v1.0',status:'Active',createdAt:'2026-09-24',updatedAt:'2026-09-24',uploaded:2,sampleFileName:''},
+ {id:'d10',name:'Invitation letter (sample)',version:'v1.0',status:'Active',createdAt:'2026-09-25',updatedAt:'2026-09-25',uploaded:3,sampleFileName:''},
+ {id:'d11',name:'Language test results (sample)',version:'v1.0',status:'Active',createdAt:'2026-09-26',updatedAt:'2026-09-26',uploaded:2,sampleFileName:''},
+ {id:'d12',name:'Residence history summary (sample)',version:'v1.0',status:'Active',createdAt:'2026-09-27',updatedAt:'2026-09-27',uploaded:1,sampleFileName:''},
+ {id:'d13',name:'School acceptance letter (sample)',version:'v1.0',status:'Active',createdAt:'2026-09-28',updatedAt:'2026-09-28',uploaded:2,sampleFileName:''},
+ {id:'d14',name:'Consultation notes (sample)',version:'v1.0',status:'Active',createdAt:'2026-09-29',updatedAt:'2026-09-29',uploaded:1,sampleFileName:''}];}
 function visasSeed(){function v(id,name,eff,notes,docIds){return {id:id,name:name,effective:eff,notes:notes,docIds:docIds,createdAt:'2026-09-01',updatedAt:'2026-10-01'};}
  return [v('v-work','Work Permit','2026-01-01','Sample visa entry for demo purposes.',['d1','d2','d8','d5']),
  v('v-visitor','Visitor Visa','2026-01-01','Sample visa entry for demo purposes.',['d1','d3','d10','d9']),
@@ -52,7 +52,7 @@ function migrate(old){
  var s=seed(); try{
   if(old.clients&&old.clients.length)s.clients=old.clients.map(function(c){c.middle=c.middle||'';c.createdAt=c.createdAt||c.date||'2026-09-01';c.updatedAt=c.updatedAt||c.createdAt;return c;});
   if(old.applications&&old.applications.length)s.applications=old.applications.map(function(a){a.type=alias(a.type);a.createdAt=a.createdAt||a.date||today();a.updatedAt=a.updatedAt||a.createdAt;return a;});
-  if(old.documents&&old.documents.length)s.documents=old.documents.map(function(d){d.type=alias(d.type);d.sampleFileName=d.sampleFileName||'';return d;});
+  if(old.documents&&old.documents.length)s.documents=old.documents.map(function(d){delete d.type;delete d.applicationType;d.sampleFileName=d.sampleFileName||'';return d;});
   if(old.tasks)s.tasks=old.tasks; if(old.announcements)s.announcements=old.announcements;
   // carry checklist state by keyword -> docId
   var kw=[['passport','d1'],['form','d2'],['photo','d3'],['support','d4'],['fee','d5']];
@@ -61,7 +61,8 @@ function migrate(old){
  }catch(e){}
  return s;
 }
-function load(){try{var raw=localStorage.getItem(KEY);if(raw){var d=JSON.parse(raw);if(d&&d.version===2)return d;}
+function stripDocTypes(d){var changed=false;(d.documents||[]).forEach(function(doc){if('type' in doc){delete doc.type;changed=true;}if('applicationType' in doc){delete doc.applicationType;changed=true;}});return changed;}
+function load(){try{var raw=localStorage.getItem(KEY);if(raw){var d=JSON.parse(raw);if(d&&d.version===2){if(stripDocTypes(d))save(d);return d;}}
  var oldRaw=localStorage.getItem(OLDKEY); if(oldRaw){var m=migrate(JSON.parse(oldRaw)); save(m); return m;}}catch(e){} var s=seed();save(s);return s;}
 function save(d){localStorage.setItem(KEY,JSON.stringify(d));}
 function reset(){localStorage.removeItem(KEY);localStorage.removeItem(OLDKEY);return load();}
