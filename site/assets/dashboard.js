@@ -86,7 +86,7 @@ if(page==='clients'){
   document.querySelectorAll('[data-edit-client]').forEach(function(b){b.addEventListener('click',function(){openEdit(b.getAttribute('data-edit-client'),b);});});}
  function renderEditApps(){var apps=data.applications.filter(function(a){return a.clientId===editingId;});
   $('editApps').innerHTML=apps.length?apps.map(function(a){return '<li class="card"><strong>'+esc(a.type)+'</strong> · '+badge(a.status)+'<br><span class="muted">Created '+esc(a.createdAt||a.date)+' · Updated '+esc(a.updatedAt||a.createdAt||a.date)+' · Due '+esc(a.due)+'</span></li>';}).join(''):'<li class="card">No applications yet.</li>';}
- function openEdit(cid,btn){editingId=cid;var c=clientById(cid);$('editEmail').value=c.email;$('editPhone').value=c.phone;$('editClientName').textContent=S.clientName(c);renderEditApps();openModal('editClientModal');if(btn)lastFocus=btn;}
+ function openEdit(cid,btn){editingId=cid;var c=clientById(cid);$('editFirst').value=c.first||'';$('editMiddle').value=c.middle||'—';$('editLast').value=c.last||'';$('editEmail').value=c.email;$('editPhone').value=c.phone;$('editClientName').textContent=S.clientName(c);renderEditApps();openModal('editClientModal');if(btn)lastFocus=btn;}
  $('addClientBtn').addEventListener('click',function(){openModal('addClientModal');});
  $('addClientForm').addEventListener('submit',function(e){e.preventDefault();
   var first=$('newFirst').value.trim(),last=$('newLast').value.trim(),email=$('newEmail').value.trim(),type=$('newVisaType').value;

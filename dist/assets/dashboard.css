@@ -46,3 +46,5 @@ label{font-weight:700;display:block;margin:12px 0 5px}input,select,textarea{widt
 @media(max-width:640px){.dual{grid-template-columns:1fr}.dual-arrows{flex-direction:row;justify-content:center}.dual-arrows .btn{transform:rotate(90deg)}}
 .modal .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 [hidden]{display:none!important}
+
+.readonly-field{background:#eef1f6;color:#5b6b82;cursor:not-allowed;border-style:dashed}

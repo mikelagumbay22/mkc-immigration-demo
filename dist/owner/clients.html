@@ -25,7 +25,13 @@
 <div class="actions"><button class="btn navy" type="submit">Save client (demo)</button><button class="btn ghost" type="button" data-close="addClientModal">Cancel</button></div></form></div></div>
 <div class="modal-back" id="editClientModal" hidden><div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="editClientTitle">
 <h2 id="editClientTitle">Edit client — <span id="editClientName"></span> (demo)</h2>
-<form id="editClientForm"><label for="editEmail">Client Email (demo)</label><input id="editEmail" type="email">
+<form id="editClientForm">
+<fieldset style="border:1px solid var(--line);border-radius:12px;margin-bottom:6px"><legend class="muted" style="font-size:.85rem;padding:0 6px">Name — Read-only (cannot be edited here)</legend>
+<label for="editFirst">First name <span class="muted">(read-only)</span></label><input id="editFirst" readonly aria-readonly="true" class="readonly-field">
+<label for="editMiddle">Middle name <span class="muted">(read-only)</span></label><input id="editMiddle" readonly aria-readonly="true" class="readonly-field">
+<label for="editLast">Last name <span class="muted">(read-only)</span></label><input id="editLast" readonly aria-readonly="true" class="readonly-field">
+</fieldset>
+<label for="editEmail">Client Email (demo)</label><input id="editEmail" type="email">
 <label for="editPhone">Phone (demo)</label><input id="editPhone" type="tel">
 <div class="actions"><button class="btn navy" type="submit">Save contact details</button></div><p id="editMsg" role="status" aria-live="polite"></p></form>
 <hr><h3>Add an application for this client</h3>

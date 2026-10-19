@@ -26,3 +26,7 @@ Single shared store `site/assets/demo-data.js`, localStorage key `mkc_demo_v2`, 
 - **Document delete behaviour:** deleting a document (styled demo confirm) also removes it from every visa's required list, so client checklists update consistently.
 - Document/client/visa add & edit are accessible modals (dialog roles, Escape closes, focus returns). Document sample uploads and checklist uploads store filenames only.
 - The visible Pexels footer credit line was removed from all public pages (2026-10-19); the licence note remains in this README and in an HTML comment on the home page.
+
+## About credentials & portrait (2026-10-19)
+- `site/assets/cicc-logo.png` copied from a client-supplied inbox file (288x91 PNG) and shown in an About credentials block with the text `ICCRC#: X123456` labelled visibly as `(demo placeholder - replace with verified CICC licence no.)`. This is a DEMO PLACEHOLDER, not verified — replace with Morris's verified CICC licence number after checking the CICC Public Register before any real use.
+- `site/assets/morris-portrait.jpg` (640x800): originally a non-generative local polish; on 2026-10-19, with John's approval, ONE Higgsfield `generate_image` edit (`gpt_image_2_5`, 0.25 credits; balance 1000 -> 999.75) changed the clothing to a navy suit/white shirt/navy tie from the original inbox portrait. Face/hair/expression verified visually unchanged. Do not describe it as an unedited photograph. Raw inbox files are not committed.
