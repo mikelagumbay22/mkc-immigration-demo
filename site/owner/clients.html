@@ -20,7 +20,7 @@
 <label for="newEmail">Email address *</label><input id="newEmail" type="email" placeholder="name@demo.ca" required>
 <label for="newPhone">Contact number</label><input id="newPhone" type="tel" placeholder="(905) 555-01xx">
 <label for="newVisaType">Visa application type *</label><select id="newVisaType" required></select>
-<label for="newDue">Due date</label><input id="newDue" type="date" value="2026-12-31">
+<label for="newEffective">Effective date</label><select id="newEffective"></select>
 <p id="addClientError" role="alert" aria-live="assertive" style="color:#8a0e24;font-weight:700"></p>
 <div class="actions"><button class="btn navy" type="submit">Save client (demo)</button><button class="btn ghost" type="button" data-close="addClientModal">Cancel</button></div></form></div></div>
 <div class="modal-back" id="editClientModal" hidden><div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="editClientTitle">
@@ -36,7 +36,8 @@
 <div class="actions"><button class="btn navy" type="submit">Save contact details</button></div><p id="editMsg" role="status" aria-live="polite"></p></form>
 <hr><h3>Add an application for this client</h3>
 <label for="editVisaType">Visa type</label><select id="editVisaType"></select>
-<label for="editDue">Due date</label><input id="editDue" type="date" value="2026-12-31">
+<label for="editEffective">Effective date</label><select id="editEffective"></select>
+<p id="editAppError" role="alert" aria-live="assertive" style="color:#8a0e24;font-weight:700"></p>
 <p><button class="btn" id="addAppForClient" type="button">＋ Add application</button></p>
 <h3>This client’s applications</h3><ul id="editApps" style="list-style:none;padding:0;display:grid;gap:10px"></ul>
 <div class="actions"><button class="btn ghost" type="button" data-close="editClientModal">Close</button></div></div></div></main></div>

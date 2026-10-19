@@ -19,19 +19,25 @@ document.addEventListener('keydown',function(e){
 document.querySelectorAll('[data-signout]').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();sessionStorage.removeItem('mkc_demo_role');location.href='../index.html';});});
 document.querySelectorAll('[data-menu]').forEach(function(b){b.addEventListener('click',function(){var s=document.querySelector('.side');b.setAttribute('aria-expanded',s.classList.toggle('open'));});});
 function wireReset(){var b=$('resetDemo');if(b)b.addEventListener('click',function(){data=S.reset();location.reload();});}
-function visaOptions(sel){return data.visas.map(function(v){return '<option value="'+esc(v.name)+'"'+(v.name===sel?' selected':'')+'>'+esc(v.name)+'</option>';}).join('');}
+function visaOptions(sel){return S.distinctTypes(data).map(function(n){return '<option value="'+esc(n)+'"'+(n===sel?' selected':'')+'>'+esc(n)+'</option>';}).join('');}
+function fmtEff(iso){var m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];var parts=String(iso||'').split('-');if(parts.length===3){var mo=parseInt(parts[1],10);if(mo>=1&&mo<=12)return m[mo-1]+' '+parseInt(parts[2],10)+', '+parts[0]+' ('+iso+')';}return iso;}
+/* Populate an Effective-date <select> from the visa RECORDS of a type: valid dates newest first, value = visa record id. No valid date -> single 'No effective date yet' option (value ''). Returns true if a valid date is available. */
+function populateEffective(typeName,sel){var recs=S.visasOfType(data,typeName).filter(function(v){return v.effective&&!isNaN(Date.parse(v.effective));});
+ if(!recs.length){sel.innerHTML='<option value="">No effective date yet</option>';return false;}
+ sel.innerHTML=recs.map(function(v){return '<option value="'+esc(v.id)+'">'+esc(fmtEff(v.effective))+'</option>';}).join('');return true;}
+function selectedVisa(sel){return data.visas.find(function(v){return v.id===sel.value;})||null;}
 
 /* ================= CLIENT ================= */
 if(page==='client-dashboard'){
  var mine=data.applications.filter(function(a){return a.clientId==='c-demo';});
  $('announcements').innerHTML=data.announcements.map(function(a){return '<article class="card"><p class="muted">'+esc(a.date)+' · Sample announcement</p><h3>'+esc(a.title)+'</h3><p>'+esc(a.body)+'</p></article>';}).join('');
- $('appCards').innerHTML=mine.map(function(a){var p=S.progress(data,a);return '<article class="card"><p>'+badge(a.status)+' <span class="badge">'+esc(a.type)+'</span></p><h3><a href="application.html?id='+a.id+'">'+esc(a.type)+' application</a></h3><p class="muted">Started '+esc(a.date)+' · Due '+esc(a.due)+'</p><div class="bar" role="progressbar" aria-valuenow="'+p+'" aria-valuemin="0" aria-valuemax="100" aria-label="Checklist progress"><i style="width:'+p+'%"></i></div><p>'+p+'% complete</p><a class="btn navy" href="application.html?id='+a.id+'">Open application</a></article>';}).join('');
+ $('appCards').innerHTML=mine.map(function(a){var p=S.progress(data,a);return '<article class="card"><p>'+badge(a.status)+' <span class="badge">'+esc(a.type)+'</span></p><h3><a href="application.html?id='+a.id+'">'+esc(a.type)+' application</a></h3><p class="muted">Started '+esc(a.date)+' · Effective '+esc(S.effectiveDateOf(data,a)||'—')+'</p><div class="bar" role="progressbar" aria-valuenow="'+p+'" aria-valuemin="0" aria-valuemax="100" aria-label="Checklist progress"><i style="width:'+p+'%"></i></div><p>'+p+'% complete</p><a class="btn navy" href="application.html?id='+a.id+'">Open application</a></article>';}).join('');
  wireReset();
 }
 if(page==='application'){
  var id=new URLSearchParams(location.search).get('id')||'a1'; var app=appById(id)||data.applications[0]; var cl=S.ensureChecklist(data,app); S.save(data);
  function render(){ var p=S.progress(data,app); var done=cl.filter(function(x){return x.done;}).length;
-  $('appDetail').innerHTML='<p>'+badge(app.status)+' <span class="badge">'+esc(app.type)+'</span></p><h2>'+esc(app.type)+' application</h2><p class="muted">Sample application · Started '+esc(app.date)+' · Due '+esc(app.due)+'</p>'
+  $('appDetail').innerHTML='<p>'+badge(app.status)+' <span class="badge">'+esc(app.type)+'</span></p><h2>'+esc(app.type)+' application</h2><p class="muted">Sample application · Started '+esc(app.date)+' · Effective '+esc(S.effectiveDateOf(data,app)||'—')+'</p>'
   +'<div class="bar" role="progressbar" aria-valuenow="'+p+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+p+'%"></i></div><p><strong>'+p+'% complete</strong> · Checklist status: <strong>'+(p===100?'Complete':'Incomplete')+'</strong> ('+done+' of '+cl.length+' done) · Application status badge above stays “'+esc(app.status)+'” as seeded.</p>'
   +'<p class="muted">Sample checklist only — requirements come from this application’s visa type in the demo Visas list; not official IRCC advice. Upload is a demo: only the file name and Done state are saved in your browser; file contents are never read or stored.</p><ul class="check" style="list-style:none;padding:0">'
   +cl.map(function(r,i){return '<li class="card req"><div class="req-main"><strong>'+(r.done?'✓ Done':'○ To do')+' — '+esc(r.label)+'</strong></div><div class="req-side"><label class="btn">Upload (demo)<input type="file" data-upload="'+i+'" style="position:absolute;opacity:0;width:1px;height:1px" aria-label="Upload demo file for '+esc(r.label)+'"></label>'+(r.filename?'<span class="muted req-file">File (name only): '+esc(r.filename)+'</span>':'')+'</div></li>';}).join('')+'</ul>';
@@ -63,12 +69,14 @@ if(page==='owner-dashboard'){
   $('chart').innerHTML=Object.keys(counts).map(function(k){var w=Math.round(counts[k]/max*100);return '<div style="margin:10px 0"><span>'+esc(k)+' ('+counts[k]+')</span><div class="bar" role="img" aria-label="'+esc(k)+': '+counts[k]+' cases"><i style="width:'+w+'%"></i></div></div>';}).join('')
    +'<table><caption class="muted">Cases by status (data table for the chart above)</caption><tr><th>Status</th><th>Cases</th></tr>'+Object.keys(counts).map(function(k){return '<tr><td>'+esc(k)+'</td><td>'+counts[k]+'</td></tr>';}).join('')+'</table>';
   var today=S.today(); var overdue=data.applications.filter(function(a){return a.due<today&&a.status!=='Approved'&&a.status!=='Cancelled';});
-  $('overdue').innerHTML=overdue.length?overdue.map(function(a){return '<li>'+esc(S.clientName(clientById(a.clientId)))+' — '+esc(a.type)+' · due '+esc(a.due)+' · '+esc(a.status)+'</li>';}).join(''):'<li>No overdue sample cases.</li>';
-  $('recent').innerHTML=data.applications.slice().reverse().slice(0,10).map(function(a,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(S.clientName(clientById(a.clientId)))+'</td><td>'+esc(a.type)+'</td><td>'+badge(a.status)+'</td><td>'+esc(a.due)+'</td></tr>';}).join('');
+  $('overdue').innerHTML=overdue.length?overdue.map(function(a){return '<li>'+esc(S.clientName(clientById(a.clientId)))+' — '+esc(a.type)+' · legacy due '+esc(a.due)+' · '+esc(a.status)+'</li>';}).join(''):'<li>No overdue sample cases.</li>';
+  $('recent').innerHTML=data.applications.slice().reverse().slice(0,10).map(function(a,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(S.clientName(clientById(a.clientId)))+'</td><td>'+esc(a.type)+'</td><td>'+badge(a.status)+'</td><td>'+esc(S.effectiveDateOf(data,a)||'—')+'</td></tr>';}).join('');
  }
  $('appClient').innerHTML=data.clients.map(function(c){return '<option value="'+c.id+'">'+esc(S.clientName(c))+'</option>';}).join('');
  $('appType').innerHTML=visaOptions();
- $('addApp').addEventListener('submit',function(e){e.preventDefault();var a={id:'a-'+Date.now(),clientId:$('appClient').value,type:$('appType').value,status:$('appStatus').value,date:S.today(),due:$('appDue').value||'2026-12-31',createdAt:S.today(),updatedAt:S.today(),progress:0};data.applications.push(a);S.save(data);render();$('addMsg').textContent='Added sample application for '+S.clientName(clientById(a.clientId))+'.';});
+ populateEffective($('appType').value,$('appEffective'));
+ $('appType').addEventListener('change',function(){populateEffective($('appType').value,$('appEffective'));});
+ $('addApp').addEventListener('submit',function(e){e.preventDefault();var v=selectedVisa($('appEffective'));if(!v){$('addMsg').textContent='Cannot save: a visa with an effective date is needed first. Add an effective date for this visa type on the Visas page.';return;}var a={id:'a-'+Date.now(),clientId:$('appClient').value,type:$('appType').value,visaId:v.id,effectiveDate:v.effective,status:$('appStatus').value,date:S.today(),createdAt:S.today(),updatedAt:S.today(),progress:0};data.applications.push(a);S.save(data);render();$('addMsg').textContent='Added sample application for '+S.clientName(clientById(a.clientId))+'.';});
  render();
 }
 
@@ -85,19 +93,24 @@ if(page==='clients'){
   $('prevPage').disabled=cur<=1; $('nextPage').disabled=cur>=pages;
   document.querySelectorAll('[data-edit-client]').forEach(function(b){b.addEventListener('click',function(){openEdit(b.getAttribute('data-edit-client'),b);});});}
  function renderEditApps(){var apps=data.applications.filter(function(a){return a.clientId===editingId;});
-  $('editApps').innerHTML=apps.length?apps.map(function(a){return '<li class="card"><strong>'+esc(a.type)+'</strong> · '+badge(a.status)+'<br><span class="muted">Created '+esc(a.createdAt||a.date)+' · Updated '+esc(a.updatedAt||a.createdAt||a.date)+' · Due '+esc(a.due)+'</span></li>';}).join(''):'<li class="card">No applications yet.</li>';}
+  $('editApps').innerHTML=apps.length?apps.map(function(a){return '<li class="card"><strong>'+esc(a.type)+'</strong> · '+badge(a.status)+'<br><span class="muted">Created '+esc(a.createdAt||a.date)+' · Updated '+esc(a.updatedAt||a.createdAt||a.date)+' · Effective '+esc(S.effectiveDateOf(data,a)||'—')+'</span></li>';}).join(''):'<li class="card">No applications yet.</li>';}
  function openEdit(cid,btn){editingId=cid;var c=clientById(cid);$('editFirst').value=c.first||'';$('editMiddle').value=c.middle||'—';$('editLast').value=c.last||'';$('editEmail').value=c.email;$('editPhone').value=c.phone;$('editClientName').textContent=S.clientName(c);renderEditApps();openModal('editClientModal');if(btn)lastFocus=btn;}
+ populateEffective($('newVisaType').value,$('newEffective'));
+ $('newVisaType').addEventListener('change',function(){populateEffective($('newVisaType').value,$('newEffective'));});
  $('addClientBtn').addEventListener('click',function(){openModal('addClientModal');});
  $('addClientForm').addEventListener('submit',function(e){e.preventDefault();
   var first=$('newFirst').value.trim(),last=$('newLast').value.trim(),email=$('newEmail').value.trim(),type=$('newVisaType').value;
   var err=''; if(!first)err='First name is required.'; else if(!last)err='Last name is required.'; else if(!email||email.indexOf('@')<1)err='A valid demo email is required (e.g. name@demo.ca).'; else if(!type)err='Visa application type is required.';
   $('addClientError').textContent=err; if(err)return;
+  var v=selectedVisa($('newEffective'));if(!v){$('addClientError').textContent='Cannot save: a visa with an effective date is needed first. Add an effective date for this visa type on the Visas page.';return;}
   var c={id:'c-'+Date.now(),first:first,middle:$('newMiddle').value.trim(),last:last,email:email,phone:$('newPhone').value.trim(),address:'',language:'',dob:'',createdAt:S.today(),updatedAt:S.today()};
   data.clients.push(c);
-  data.applications.push({id:'a-'+Date.now(),clientId:c.id,type:type,status:'New',date:S.today(),due:$('newDue').value||'2026-12-31',createdAt:S.today(),updatedAt:S.today(),progress:0});
+  data.applications.push({id:'a-'+Date.now(),clientId:c.id,type:type,visaId:v.id,effectiveDate:v.effective,status:'New',date:S.today(),createdAt:S.today(),updatedAt:S.today(),progress:0});
   S.save(data); closeModal('addClientModal'); e.target.reset(); cur=1; render();});
  $('editClientForm').addEventListener('submit',function(e){e.preventDefault();var c=clientById(editingId);c.email=$('editEmail').value.trim();c.phone=$('editPhone').value.trim();c.updatedAt=S.today();S.save(data);$('editMsg').textContent='Contact details saved (demo).';render();});
- $('addAppForClient').addEventListener('click',function(){if(!editingId)return;var a={id:'a-'+Date.now(),clientId:editingId,type:$('editVisaType').value,status:'New',date:S.today(),due:$('editDue').value||'2026-12-31',createdAt:S.today(),updatedAt:S.today(),progress:0};data.applications.push(a);S.save(data);renderEditApps();render();$('editMsg').textContent='Added '+a.type+' application (demo).';});
+ populateEffective($('editVisaType').value,$('editEffective'));
+ $('editVisaType').addEventListener('change',function(){populateEffective($('editVisaType').value,$('editEffective'));$('editAppError').textContent='';});
+ $('addAppForClient').addEventListener('click',function(){if(!editingId)return;var v=selectedVisa($('editEffective'));if(!v){$('editAppError').textContent='Cannot add: a visa with an effective date is needed first. Add an effective date for this visa type on the Visas page.';return;}$('editAppError').textContent='';var a={id:'a-'+Date.now(),clientId:editingId,type:$('editVisaType').value,visaId:v.id,effectiveDate:v.effective,status:'New',date:S.today(),createdAt:S.today(),updatedAt:S.today(),progress:0};data.applications.push(a);S.save(data);renderEditApps();render();$('editMsg').textContent='Added '+a.type+' application (demo).';});
  ['search','fStatus','fType'].forEach(function(id){$(id).addEventListener('input',function(){cur=1;render();});});
  $('prevPage').addEventListener('click',function(){cur--;render();}); $('nextPage').addEventListener('click',function(){cur++;render();}); render();
 }
@@ -141,7 +154,7 @@ if(page==='visas'){
  $('addVisaBtn').addEventListener('click',function(){editingVisa=null;$('visaForm').reset();pickerChosen=[];selAvail.clear();selReq.clear();renderPicker();openModal('visaModal');});
  $('visaForm').addEventListener('submit',function(e){e.preventDefault();var name=$('visaName').value.trim();if(!name){$('visaMsg').textContent='Visa type is required.';return;}
   if(editingVisa){var v=data.visas.find(function(x){return x.id===editingVisa;});v.name=name;v.effective=$('visaDate').value;v.notes=$('visaNotes').value;v.docIds=pickerChosen.slice();v.updatedAt=S.today();}
-  else{data.visas.push({id:'v-'+Date.now(),name:name,effective:$('visaDate').value||S.today(),notes:$('visaNotes').value,docIds:pickerChosen.slice(),createdAt:S.today(),updatedAt:S.today()});}
+  else{data.visas.push({id:'v-'+Date.now(),name:name,effective:$('visaDate').value,notes:$('visaNotes').value,docIds:pickerChosen.slice(),createdAt:S.today(),updatedAt:S.today()});}
   S.save(data);closeModal('visaModal');render();});
  renderPicker(); render();
 }

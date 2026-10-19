@@ -11,13 +11,13 @@
 <p><span class="demo-pill">Demo — sample data only</span></p><h1>Owner dashboard</h1><p class="muted">Signed in as Owner (demo). All figures below are sample/demo.</p>
 <div class="cards" id="kpis"></div>
 <section class="card"><h2>Cases by status</h2><div id="chart"></div></section>
-<section class="card" style="margin-top:18px"><h2>Overdue cases (sample)</h2><ul id="overdue"></ul></section>
-<section style="margin-top:18px"><h2>Recent applicants</h2><div class="tablewrap"><table><thead><tr><th>No.</th><th>Applicant</th><th>Application type</th><th>Status</th><th>Due date</th></tr></thead><tbody id="recent"></tbody></table></div></section>
+<section class="card" style="margin-top:18px"><h2>Overdue cases (sample)</h2><p class="muted">Demo only: based on the legacy <em>due</em> date kept on seeded sample applications. New applications have an effective date instead and never appear here.</p><ul id="overdue"></ul></section>
+<section style="margin-top:18px"><h2>Recent applicants</h2><div class="tablewrap"><table><thead><tr><th>No.</th><th>Applicant</th><th>Application type</th><th>Status</th><th>Effective date</th></tr></thead><tbody id="recent"></tbody></table></div></section>
 <form id="addApp" class="card" style="margin-top:18px"><h2>+ Add new application (demo)</h2>
 <label for="appClient">Applicant</label><select id="appClient"></select>
 <label for="appType">Application type</label><select id="appType"><option>Work Permit</option><option>Visitor Visa</option><option>Permanent Residence</option><option>Citizenship</option><option>General Consulting</option></select>
 <label for="appStatus">Status</label><select id="appStatus"><option>New</option><option>Active</option><option>Submitted</option><option>Approved</option><option>Denied</option><option>Cancelled</option></select>
-<label for="appDue">Due date</label><input id="appDue" type="date" value="2026-12-31">
+<label for="appEffective">Effective date</label><select id="appEffective"></select>
 <p id="addMsg" role="status" aria-live="polite"></p><button class="btn navy" type="submit">Add application (demo)</button></form></main></div>
 <script src="../assets/demo-data.js"></script><script src="../assets/dashboard.js"></script>
 </body></html>

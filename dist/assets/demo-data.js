@@ -38,11 +38,11 @@ function visasSeed(){function v(id,name,eff,notes,docIds){return {id:id,name:nam
 function seed(){
  var clients=[{id:'c-demo',first:'Sample',middle:'',last:'Client',email:'client@demo.ca',phone:'(905) 555-0101',address:'',language:'',dob:'',createdAt:'2026-09-01',updatedAt:'2026-09-01'}];
  for(var i=1;i<=24;i++){clients.push({id:'c'+i,first:'Sample Client',middle:'',last:String(i).padStart(2,'0'),email:'sample'+String(i).padStart(2,'0')+'@demo.ca',phone:'(905) 555-01'+String(i).padStart(2,'0'),address:'',language:'',dob:'',createdAt:'2026-09-01',updatedAt:'2026-09-01'});}
- var apps=[{id:'a1',clientId:'c-demo',type:'Work Permit',status:'Active',date:'2026-09-15',due:'2026-11-15',createdAt:'2026-09-15',updatedAt:'2026-09-15'},
- {id:'a2',clientId:'c-demo',type:'Visitor Visa',status:'Submitted',date:'2026-08-20',due:'2026-12-01',createdAt:'2026-08-20',updatedAt:'2026-08-20'}];
+ var apps=[{id:'a1',clientId:'c-demo',type:'Work Permit',visaId:'v-work',effectiveDate:'2026-01-01',status:'Active',date:'2026-09-15',due:'2026-11-15',createdAt:'2026-09-15',updatedAt:'2026-09-15'},
+ {id:'a2',clientId:'c-demo',type:'Visitor Visa',visaId:'v-visitor',effectiveDate:'2026-01-01',status:'Submitted',date:'2026-08-20',due:'2026-12-01',createdAt:'2026-08-20',updatedAt:'2026-08-20'}];
  var types=['Work Permit','Visitor Visa','Permanent Residence','Citizenship','General Consulting','Work Permit','Permanent Residence'];
  var stats=['New','Active','Submitted','Approved','Active','Submitted','Denied','Active','Cancelled','Approved'];
- for(var j=1;j<=24;j++){var dt='2026-0'+((j%9)+1)+'-'+String((j%27)+1).padStart(2,'0');apps.push({id:'a-s'+j,clientId:'c'+j,type:types[j%types.length],status:stats[j%stats.length],date:dt,due:(j%4===0?'2026-09-':'2026-12-')+String((j%27)+1).padStart(2,'0'),createdAt:dt,updatedAt:dt,progress:[20,45,60,80,35,90,100,55][j%8]});}
+ for(var j=1;j<=24;j++){var dt='2026-0'+((j%9)+1)+'-'+String((j%27)+1).padStart(2,'0');apps.push({id:'a-s'+j,clientId:'c'+j,type:types[j%types.length],visaId:({'Work Permit':'v-work','Visitor Visa':'v-visitor','Permanent Residence':'v-pr','Citizenship':'v-cit','General Consulting':'v-general'})[types[j%types.length]],effectiveDate:'2026-01-01',status:stats[j%stats.length],date:dt,due:(j%4===0?'2026-09-':'2026-12-')+String((j%27)+1).padStart(2,'0'),createdAt:dt,updatedAt:dt,progress:[20,45,60,80,35,90,100,55][j%8]});}
  return {version:2,clients:clients,applications:apps,
   checklists:{a2:[{docId:'d1',done:true,filename:'sample-passport-info.pdf'},{docId:'d3',done:true,filename:'sample-photo.jpg'},{docId:'d10',done:true,filename:'sample-invitation.pdf'}]},
   tasks:[{id:'t1',title:'Sample owner task: review uploaded documents',due:'2026-12-10',done:false,appId:'a1'},{id:'t2',title:'Sample owner task: confirm next appointment by phone',due:'2026-10-10',done:false,appId:'a2'},{id:'t3',title:'Sample owner task: prepare consultation notes',due:'2026-12-20',done:true,appId:'a1'}],
@@ -62,11 +62,17 @@ function migrate(old){
  return s;
 }
 function stripDocTypes(d){var changed=false;(d.documents||[]).forEach(function(doc){if('type' in doc){delete doc.type;changed=true;}if('applicationType' in doc){delete doc.applicationType;changed=true;}});return changed;}
-function load(){try{var raw=localStorage.getItem(KEY);if(raw){var d=JSON.parse(raw);if(d&&d.version===2){if(stripDocTypes(d))save(d);return d;}}
+function load(){try{var raw=localStorage.getItem(KEY);if(raw){var d=JSON.parse(raw);if(d&&d.version===2){var ch=stripDocTypes(d);if(migrateApps(d))ch=true;if(ch)save(d);return d;}}
  var oldRaw=localStorage.getItem(OLDKEY); if(oldRaw){var m=migrate(JSON.parse(oldRaw)); save(m); return m;}}catch(e){} var s=seed();save(s);return s;}
 function save(d){localStorage.setItem(KEY,JSON.stringify(d));}
 function reset(){localStorage.removeItem(KEY);localStorage.removeItem(OLDKEY);return load();}
-function visaFor(data,app){return (data.visas||[]).find(function(v){return v.name===app.type;});}
+function visaFor(data,app){if(app.visaId){var byId=(data.visas||[]).find(function(v){return v.id===app.visaId;});if(byId)return byId;}return (data.visas||[]).find(function(v){return v.name===app.type;});}
+function distinctTypes(data){var seen={},out=[];(data.visas||[]).forEach(function(v){if(!seen[v.name]){seen[v.name]=1;out.push(v.name);}});return out;}
+function visasOfType(data,type){return (data.visas||[]).map(function(v,i){return {v:v,i:i};}).filter(function(x){return x.v.name===type;}).sort(function(a,b){var ta=Date.parse(a.v.effective),tb=Date.parse(b.v.effective);var va=!isNaN(ta),vb=!isNaN(tb);if(va&&vb)return (tb-ta)||(a.i-b.i);if(va)return -1;if(vb)return 1;return a.i-b.i;}).map(function(x){return x.v;});}
+function effectiveDateOf(data,app){if(app.effectiveDate&&!isNaN(Date.parse(app.effectiveDate)))return app.effectiveDate;var v=visaFor(data,app);if(v&&v.effective&&!isNaN(Date.parse(v.effective)))return v.effective;return '';}
+/* Legacy migration: apps without visaId get the first visa record matching their type + its effective date.
+   The legacy `due` field is KEPT only as an internal field on seeded demo apps for the owner overdue demo; new apps never get one. */
+function migrateApps(data){var changed=false;(data.applications||[]).forEach(function(a){if(!a.visaId){var v=(data.visas||[]).find(function(x){return x.name===a.type;});if(v){a.visaId=v.id;if(!a.effectiveDate&&v.effective)a.effectiveDate=v.effective;changed=true;}}});return changed;}
 function docById(data,id){return (data.documents||[]).find(function(d){return d.id===id;});}
 /* Sync an application's checklist to its visa's required docs, preserving Done/filename by docId. Mutates data.checklists. */
 function ensureChecklist(data,app){
@@ -76,5 +82,5 @@ function ensureChecklist(data,app){
  data.checklists[app.id]=out; return out;}
 function progress(data,app){var visa=visaFor(data,app);if(visa){if(!visa.docIds.length)return 100;var stored={};(data.checklists[app.id]||[]).forEach(function(r){stored[r.docId]=r;});var done=visa.docIds.filter(function(id){return stored[id]&&stored[id].done;}).length;return Math.round(done/visa.docIds.length*100);}return typeof app.progress==='number'?app.progress:0;}
 function clientName(c){return [c.first,c.middle,c.last].filter(Boolean).join(' ');}
-window.MKCStore={KEY:KEY,OLDKEY:OLDKEY,TYPES:TYPES,STATUSES:STATUSES,today:today,alias:alias,load:load,save:save,reset:reset,progress:progress,clientName:clientName,visaFor:visaFor,docById:docById,ensureChecklist:ensureChecklist,esc:function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}};
+window.MKCStore={KEY:KEY,OLDKEY:OLDKEY,TYPES:TYPES,STATUSES:STATUSES,today:today,alias:alias,load:load,save:save,reset:reset,progress:progress,clientName:clientName,visaFor:visaFor,distinctTypes:distinctTypes,visasOfType:visasOfType,effectiveDateOf:effectiveDateOf,docById:docById,ensureChecklist:ensureChecklist,esc:function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}};
 })();
