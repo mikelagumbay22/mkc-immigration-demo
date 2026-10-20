@@ -61,3 +61,7 @@ Every image is now used on exactly one page (a video's poster counts as its clip
 - Services strip: 179f9ec1 Atlantic cove (Visit), f0e4ae09 stone campus quad (Study), 160b1eef bright office (Work), edee4e5e family home porch (Settle) → `svc-*-{560,960}.webp`
 - About break 35c4b225 riverside park; Reviews break 6ba12656 cafe table; FAQ break 1b5f8a9c prairie barn → `ca-*-{640,1280}.webp`
 - Removed the now-unused `ca-lake-canoe-*` and `ca-rockies-jet-*` stills.
+
+## Cache busting
+Every local CSS/JS reference carries `?v=<version>` (currently `20261019b`). Bump it on every publish, e.g.:
+`NEW=20261020a; grep -rlE '\.(css|js)\?v=' site --include='*.html' | xargs sed -i -E "s/\.(css|js)\?v=[A-Za-z0-9]+/.\1?v=$NEW/g"`
