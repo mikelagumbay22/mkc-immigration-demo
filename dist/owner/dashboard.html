@@ -6,18 +6,18 @@
 <a class="skip" href="#main" style="position:absolute;left:-9999px">Skip to content</a>
 <div class="topbar"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="150" height="46"><button class="btn" type="button" data-menu aria-expanded="false" aria-controls="sideNav">☰ Menu</button></div>
 <div class="dash">
-<aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p><span class="demo-pill">Demo — sample data only</span></p><p>Signed in as<br><strong>Owner (demo)</strong></p><nav aria-label="Dashboard"><a href="dashboard.html" aria-current="page">Dashboard</a><a href="clients.html">Clients</a><a href="documents.html">Documents</a><a href="visas.html">Visas</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav><p style="margin-top:auto;font-size:.8rem;color:#93a9c6">Demo only — this login is not real security and there is no backend. Sample data lives in your browser (localStorage).</p></aside>
+<aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p><span class="demo-pill">Demo — sample data only</span></p><p>Signed in as<br><strong>Owner</strong></p><nav aria-label="Dashboard"><a href="dashboard.html" aria-current="page">Dashboard</a><a href="clients.html">Clients</a><a href="documents.html">Documents</a><a href="visas.html">Visas</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav><p style="margin-top:auto;font-size:.8rem;color:#93a9c6">Demo only — this login is not real security and there is no backend. Sample data lives in your browser (localStorage).</p></aside>
 <main class="main" id="main">
-<p><span class="demo-pill">Demo — sample data only</span></p><h1>Owner dashboard</h1><p class="muted">Signed in as Owner (demo). All figures below are sample/demo.</p>
+<p><span class="demo-pill">Demo — sample data only</span></p><h1>Owner dashboard</h1><p class="muted">Signed in as Owner. All figures below are sample/demo.</p>
 <div class="cards" id="kpis"></div>
 <section class="card"><h2>Cases by status</h2><div id="chart"></div></section>
 <section class="card" style="margin-top:18px"><h2>Overdue cases (sample)</h2><p class="muted">Demo only: based on the legacy <em>due</em> date kept on seeded sample applications. New applications have an effective date instead and never appear here.</p><ul id="overdue"></ul></section>
 <section style="margin-top:18px"><h2>Recent applicants</h2><div class="tablewrap"><table><thead><tr><th>No.</th><th>Applicant</th><th>Application type</th><th>Status</th><th>Effective date</th></tr></thead><tbody id="recent"></tbody></table></div></section>
-<form id="addApp" class="card" style="margin-top:18px"><h2>+ Add new application (demo)</h2>
+<form id="addApp" class="card" style="margin-top:18px"><h2>+ Add new application</h2>
 <label for="appClient">Applicant</label><select id="appClient"></select>
 <label for="appType">Application type</label><select id="appType"><option>Work Permit</option><option>Visitor Visa</option><option>Permanent Residence</option><option>Citizenship</option><option>General Consulting</option></select>
 <label for="appStatus">Status</label><select id="appStatus"><option>New</option><option>Active</option><option>Submitted</option><option>Approved</option><option>Denied</option><option>Cancelled</option></select>
 <label for="appEffective">Effective date</label><select id="appEffective"></select>
-<p id="addMsg" role="status" aria-live="polite"></p><button class="btn navy" type="submit">Add application (demo)</button></form></main></div>
+<p id="addMsg" role="status" aria-live="polite"></p><button class="btn navy" type="submit">Add application</button></form></main></div>
 <script src="../assets/demo-data.js"></script><script src="../assets/dashboard.js"></script>
 </body></html>

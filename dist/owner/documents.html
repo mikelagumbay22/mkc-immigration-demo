@@ -4,14 +4,14 @@
 <script>(function(){var r=sessionStorage.getItem('mkc_demo_role');if(r!=='owner'){location.replace('../login.html');}})();</script>
 </head><body data-page="documents" data-role="owner">
 <div class="topbar"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="150" height="46"><button class="btn" type="button" data-menu aria-expanded="false" aria-controls="sideNav">☰ Menu</button></div>
-<div class="dash"><aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p><span class="demo-pill">Demo — sample data only</span></p><p>Signed in as<br><strong>Owner (demo)</strong></p><nav aria-label="Dashboard"><a href="dashboard.html">Dashboard</a><a href="clients.html">Clients</a><a href="documents.html" aria-current="page">Documents</a><a href="visas.html">Visas</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav><p style="margin-top:auto;font-size:.8rem;color:#93a9c6">Demo only — this login is not real security and there is no backend. Sample data lives in your browser (localStorage).</p></aside>
+<div class="dash"><aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p><span class="demo-pill">Demo — sample data only</span></p><p>Signed in as<br><strong>Owner</strong></p><nav aria-label="Dashboard"><a href="dashboard.html">Dashboard</a><a href="clients.html">Clients</a><a href="documents.html" aria-current="page">Documents</a><a href="visas.html">Visas</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav><p style="margin-top:auto;font-size:.8rem;color:#93a9c6">Demo only — this login is not real security and there is no backend. Sample data lives in your browser (localStorage).</p></aside>
 <main class="main" id="main"><p><span class="demo-pill">Demo — sample data only</span></p><h1>Document requirements library</h1>
 <p class="muted">Sample/demo system data. Categories are demo library categories only — they do not confirm MKC’s public services. Demo: deleting a document also removes it from any visa required-document lists that use it.</p>
 <p><button class="btn navy" id="addDocBtn" type="button">＋ Add document</button></p>
 <p class="muted">Documents have no application type of their own — a document becomes a requirement only when it is picked into a visa’s required list on the Visas page.</p>
 <div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Document</th><th>Version</th><th>Required for (visas)</th><th>Status</th><th>Created</th><th>Updated</th><th>Uploaded (sample)</th><th>Actions</th></tr></thead><tbody id="docRows"></tbody></table></div>
 <div class="modal-back" id="docModal" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="docTitle">
-<h2 id="docTitle">Add / edit document (demo)</h2>
+<h2 id="docTitle">Add / edit document</h2>
 <form id="docForm"><input type="hidden" id="docId">
 <label for="docName">Document name</label><input id="docName" required>
 
@@ -20,8 +20,8 @@
 <label for="docFile">Upload sample document (demo — filename only)</label><input id="docFile" type="file">
 <p id="docFileName" class="muted" role="status"></p>
 <p id="docMsg" role="status" aria-live="polite"></p>
-<div class="actions"><button class="btn navy" type="submit">Save document (demo)</button><button class="btn ghost" type="button" data-close="docModal">Cancel</button></div></form></div></div>
+<div class="actions"><button class="btn navy" type="submit">Save document</button><button class="btn ghost" type="button" data-close="docModal">Cancel</button></div></form></div></div>
 <div class="modal-back" id="confirmModal" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-<h2 id="confirmTitle">Delete document? (demo)</h2><p id="deleteMsg"></p>
-<div class="actions"><button class="btn" id="confirmDelete" type="button" style="background:#8a0e24;color:#fff;border-color:#8a0e24">Delete (demo)</button><button class="btn ghost" type="button" data-close="confirmModal">Cancel</button></div></div></div></main></div>
+<h2 id="confirmTitle">Delete document?</h2><p id="deleteMsg"></p>
+<div class="actions"><button class="btn" id="confirmDelete" type="button" style="background:#8a0e24;color:#fff;border-color:#8a0e24">Delete</button><button class="btn ghost" type="button" data-close="confirmModal">Cancel</button></div></div></div></main></div>
 <script src="../assets/demo-data.js"></script><script src="../assets/dashboard.js"></script></body></html>

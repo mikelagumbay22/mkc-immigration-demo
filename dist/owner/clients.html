@@ -4,16 +4,16 @@
 <script>(function(){var r=sessionStorage.getItem('mkc_demo_role');if(r!=='owner'){location.replace('../login.html');}})();</script>
 </head><body data-page="clients" data-role="owner">
 <div class="topbar"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="150" height="46"><button class="btn" type="button" data-menu aria-expanded="false" aria-controls="sideNav">☰ Menu</button></div>
-<div class="dash"><aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p><span class="demo-pill">Demo — sample data only</span></p><p>Signed in as<br><strong>Owner (demo)</strong></p><nav aria-label="Dashboard"><a href="dashboard.html">Dashboard</a><a href="clients.html" aria-current="page">Clients</a><a href="documents.html">Documents</a><a href="visas.html">Visas</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav><p style="margin-top:auto;font-size:.8rem;color:#93a9c6">Demo only — this login is not real security and there is no backend. Sample data lives in your browser (localStorage).</p></aside>
+<div class="dash"><aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p><span class="demo-pill">Demo — sample data only</span></p><p>Signed in as<br><strong>Owner</strong></p><nav aria-label="Dashboard"><a href="dashboard.html">Dashboard</a><a href="clients.html" aria-current="page">Clients</a><a href="documents.html">Documents</a><a href="visas.html">Visas</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav><p style="margin-top:auto;font-size:.8rem;color:#93a9c6">Demo only — this login is not real security and there is no backend. Sample data lives in your browser (localStorage).</p></aside>
 <main class="main" id="main"><p><span class="demo-pill">Demo — sample data only</span></p><h1>Clients</h1><p class="muted">25 sample clients with fake @demo.ca addresses and 555 demo phone numbers. No real people.</p>
 <p><button class="btn navy" id="addClientBtn" type="button">＋ Add client</button></p>
 <form class="card filters" onsubmit="return false"><div><label for="search">Search by name or application type</label><input id="search" type="search"></div>
 <div><label for="fStatus">Filter by status</label><select id="fStatus"><option value="">All statuses</option><option>New</option><option>Active</option><option>Submitted</option><option>Approved</option><option>Denied</option><option>Cancelled</option></select></div>
 <div><label for="fType">Filter by application type</label><select id="fType"><option value="">All types</option><option>Work Permit</option><option>Visitor Visa</option><option>Tourist Visa</option><option>Permanent Residence</option><option>Student Visa</option><option>Citizenship</option><option>General Consulting</option></select></div></form>
-<div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Client</th><th>Email (demo)</th><th>Phone (demo)</th><th>Applications</th><th>Latest application</th><th>Edit</th></tr></thead><tbody id="clientRows"></tbody></table></div>
+<div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Client</th><th>Email</th><th>Phone</th><th>Applications</th><th>Latest application</th><th>Edit</th></tr></thead><tbody id="clientRows"></tbody></table></div>
 <p><button class="btn" id="prevPage" type="button">← Previous</button> <span id="pageInfo" role="status"></span> <button class="btn" id="nextPage" type="button">Next →</button></p>
 <div class="modal-back" id="addClientModal" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="addClientTitle">
-<h2 id="addClientTitle">Add client (demo)</h2><p class="muted">Demo only — use demo-safe details (e.g. @demo.ca). Do not enter real personal information.</p>
+<h2 id="addClientTitle">Add client</h2><p class="muted">Demo only — use demo-safe details (e.g. @demo.ca). Do not enter real personal information.</p>
 <form id="addClientForm"><label for="newFirst">First name *</label><input id="newFirst" required>
 <label for="newMiddle">Middle name (optional)</label><input id="newMiddle">
 <label for="newLast">Last name *</label><input id="newLast" required>
@@ -22,17 +22,17 @@
 <label for="newVisaType">Visa application type *</label><select id="newVisaType" required></select>
 <label for="newEffective">Effective date</label><select id="newEffective"></select>
 <p id="addClientError" role="alert" aria-live="assertive" style="color:#8a0e24;font-weight:700"></p>
-<div class="actions"><button class="btn navy" type="submit">Save client (demo)</button><button class="btn ghost" type="button" data-close="addClientModal">Cancel</button></div></form></div></div>
+<div class="actions"><button class="btn navy" type="submit">Save client</button><button class="btn ghost" type="button" data-close="addClientModal">Cancel</button></div></form></div></div>
 <div class="modal-back" id="editClientModal" hidden><div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="editClientTitle">
-<h2 id="editClientTitle">Edit client — <span id="editClientName"></span> (demo)</h2>
+<h2 id="editClientTitle">Edit client — <span id="editClientName"></span></h2>
 <form id="editClientForm">
 <fieldset style="border:1px solid var(--line);border-radius:12px;margin-bottom:6px"><legend class="muted" style="font-size:.85rem;padding:0 6px">Name — Read-only (cannot be edited here)</legend>
 <label for="editFirst">First name <span class="muted">(read-only)</span></label><input id="editFirst" readonly aria-readonly="true" class="readonly-field">
 <label for="editMiddle">Middle name <span class="muted">(read-only)</span></label><input id="editMiddle" readonly aria-readonly="true" class="readonly-field">
 <label for="editLast">Last name <span class="muted">(read-only)</span></label><input id="editLast" readonly aria-readonly="true" class="readonly-field">
 </fieldset>
-<label for="editEmail">Client Email (demo)</label><input id="editEmail" type="email">
-<label for="editPhone">Phone (demo)</label><input id="editPhone" type="tel">
+<label for="editEmail">Client Email</label><input id="editEmail" type="email">
+<label for="editPhone">Phone</label><input id="editPhone" type="tel">
 <div class="actions"><button class="btn navy" type="submit">Save contact details</button></div><p id="editMsg" role="status" aria-live="polite"></p></form>
 <hr><h3>Add an application for this client</h3>
 <label for="editVisaType">Visa type</label><select id="editVisaType"></select>
