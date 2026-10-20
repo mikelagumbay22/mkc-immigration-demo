@@ -47,3 +47,11 @@ All AI-generated with Higgsfield (John approved, hard cap 30 credits; spent 15.0
 - Stills (gpt_image_2_5, 0.25 each): 5153a40c skyline, 5e358c82 maple street (FAQ hero), e4f8f3fa lake/canoe (Reviews break), 0a716778 airport arrivals family from behind (Process side image), 50e8341d lighthouse boardwalk (Contact hero), 628a247e jet over Rockies (FAQ break). `assets/ca-*-{640,1280}.webp`.
 - Clips (kling3_0 std 3s, sound off, 4.5 each), ping-pong looped to 6s, 960x538, muted: 29826f8e jet (Process hero), b6eef7d9 lake mist (About hero), 69b556dd skyline (Reviews hero). `assets/clip-*.{webm,mp4}` + `-poster.webp`. Lazy-loaded by `assets/media.js` (IntersectionObserver, preload=none); reduced-motion shows the poster only.
 - About section break reuses the existing 806866fb "settle" crop. The homepage hero video is unchanged.
+
+## Seasonal homepage hero (Oct 2026)
+`assets/season-hero.js` picks a hero loop from the visitor's local month (fall Sep–Nov, winter Dec–Feb, spring Mar–May, summer Jun–Aug); `?season=fall|winter|spring|summer` overrides. Only the chosen clip is fetched. JS off (`<noscript>`) or a load error falls back to the original `hero-toronto.mp4`; reduced motion shows the season poster only.
+All AI-generated with Higgsfield (John approved, hard cap 20; spent 19.00): a gpt_image_2_5 still (0.25) animated with kling3_0 std 3s, sound off (4.5), played forward then reversed to a 6s loop, 1280x720, muted.
+- Fall: still 15540db7 → clip 09384c29, a misty autumn lake with red and gold maples. `hero-fall.{webm,mp4}`, `hero-fall-poster.webp`
+- Winter: still 92e4a2fa → clip 0ea2a056, a snowy village with warm lights and tiny distant skaters on a frozen pond (no faces)
+- Spring: still 40c4b963 → clip a49bc5f8, cherry blossoms in a green city park with a distant skyline
+- Summer: still 8bbaec3a → clip f92cc6c2, a lake beach at sunset with a dock and empty chairs
