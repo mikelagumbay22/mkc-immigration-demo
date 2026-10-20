@@ -1,12 +1,12 @@
 <!doctype html><html lang="en-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>Owner Dashboard | MKC Dashboard (demo concept)</title>
-<link rel="icon" href="../assets/favicon.ico"><link rel="stylesheet" href="../assets/dashboard.css?v=20261020a"><link rel="stylesheet" href="../assets/shad.css?v=20261020a">
+<link rel="icon" href="../assets/favicon.ico"><link rel="stylesheet" href="../assets/dashboard.css?v=20261020c"><link rel="stylesheet" href="../assets/shad.css?v=20261020c">
 <script>(function(){var r=sessionStorage.getItem('mkc_demo_role');if(r!=='owner'){location.replace('../login.html');}})();</script>
 </head><body class="shad" data-page="owner-dashboard" data-role="owner">
 <a class="skip" href="#main" style="position:absolute;left:-9999px">Skip to content</a>
 <div class="topbar"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="150" height="46"><button class="btn" type="button" data-menu aria-expanded="false" aria-controls="sideNav">☰ Menu</button></div>
 <div class="dash">
-<aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p>Signed in as<br><strong>Owner</strong></p><nav aria-label="Dashboard"><a href="dashboard.html" aria-current="page">Dashboard</a><a href="clients.html">Clients</a><a href="documents.html">Documents</a><a href="visas.html">Visas</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav></aside>
+<aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p>Signed in as<br><strong>Owner</strong></p><nav aria-label="Dashboard"><a href="dashboard.html" aria-current="page">Dashboard</a><a href="clients.html">Clients</a><a href="documents.html">Documents</a><a href="visas.html">Visas</a><a href="messages.html" class="nav-msg">Messages <span class="nav-badge" id="navMsgBadge" hidden></span></a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav></aside>
 <main class="main" id="main">
 <header class="page-head"><div><h1>Owner dashboard</h1><p class="muted">Signed in as Owner.</p></div></header>
 <div class="kpi-grid" id="kpis"></div>
@@ -32,6 +32,6 @@
 <p id="docsMsg" class="muted" role="status" aria-live="polite"></p>
 <div class="actions"><button class="s-btn" type="button" data-close="docsModal">Close</button></div></div></div>
 <footer class="mini-footer"><p class="policy-links"><a href="../privacy.html">Privacy Policy</a><span class="sep" aria-hidden="true">|</span><a href="../cookies.html">Cookies Policy</a></p><p class="mini-disc">Demo concept, not affiliated with or approved by MKC Immigration Solutions Inc.</p></footer></main></div>
-<script src="../assets/vendor/chart.umd.min.js?v=20261020a"></script><div class="modal-back" id="fileDeleteModal" hidden><div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="fileDeleteTitle" aria-describedby="fileDeleteMsg"><h2 id="fileDeleteTitle">Delete uploaded document?</h2><p id="fileDeleteMsg"></p><div class="actions"><button class="btn ghost s-btn" type="button" data-close="fileDeleteModal" data-autofocus>Cancel</button><button class="btn danger-btn s-btn" type="button" id="confirmFileDelete">Delete</button></div></div></div>
-<script src="../assets/sample-seeds.js?v=20261020a"></script><script src="../assets/demo-data.js?v=20261020a"></script><script src="../assets/dashboard.js?v=20261020a"></script>
+<script src="../assets/vendor/chart.umd.min.js?v=20261020c"></script><div class="modal-back" id="fileDeleteModal" hidden><div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="fileDeleteTitle" aria-describedby="fileDeleteMsg"><h2 id="fileDeleteTitle">Delete uploaded document?</h2><p id="fileDeleteMsg"></p><div class="actions"><button class="btn ghost s-btn" type="button" data-close="fileDeleteModal" data-autofocus>Cancel</button><button class="btn danger-btn s-btn" type="button" id="confirmFileDelete">Delete</button></div></div></div>
+<script src="../assets/sample-seeds.js?v=20261020c"></script><script src="../assets/demo-data.js?v=20261020c"></script><script src="../assets/dashboard.js?v=20261020c"></script><script src="../assets/messages.js?v=20261020c"></script>
 </body></html>

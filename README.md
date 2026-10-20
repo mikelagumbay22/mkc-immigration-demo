@@ -63,8 +63,8 @@ Every image is now used on exactly one page (a video's poster counts as its clip
 - Removed the now-unused `ca-lake-canoe-*` and `ca-rockies-jet-*` stills.
 
 ## Cache busting
-Every local CSS/JS reference carries `?v=<version>` (currently `20261020a`). Bump it on every publish, e.g.:
-`NEW=20261020a; grep -rlE '\.(css|js)\?v=' site --include='*.html' | xargs sed -i -E "s/\.(css|js)\?v=[A-Za-z0-9]+/.\1?v=$NEW/g"`
+Every local CSS/JS reference carries `?v=<version>` (currently `20261020c`). Bump it on every publish, e.g.:
+`NEW=20261020c; grep -rlE '\.(css|js)\?v=' site --include='*.html' | xargs sed -i -E "s/\.(css|js)\?v=[A-Za-z0-9]+/.\1?v=$NEW/g"`
 
 ## Owner dashboard (shadcn-style, Chart.js) — Oct 2026
 - **Design system:** `site/assets/owner-shad.css` is a static-CSS copy of shadcn/ui tokens and components: HSL CSS variables, `--radius: 0.5rem`, zinc neutrals, 1px borders, muted-foreground text. It covers Card, Table, Badge (default/secondary/outline/destructive), Pagination, Dialog with a close X, and Button (default/outline/ghost) with focus rings. MKC navy is primary and gold is accent.
@@ -100,7 +100,7 @@ Uploaded files are renamed `MKC-{clientCode}-{visaCode}-{docCode}-{YYYYMMDD}.{ex
 
 On the client checklist, the sample eye button sits inline after the requirement name (tooltip "View sample") and only appears when the owner has attached a sample.
 
-## Client portal update (20261020a)
+## Client portal update (20261020c)
 
 - **Owner updates carousel** (`client/dashboard.html`): prev/next arrows, dots, swipe on touch, Left/Right keys on the focused viewport, `aria-roledescription="carousel"`/`"slide"` and a polite live region. Autoplay is off by default (Play button, 6 s), pauses on hover or focus, and is hidden under `prefers-reduced-motion`. Notices: Office hours (Mon–Fri 8:00 a.m.–5:00 p.m.), Holiday closure (Fri Dec 25 and Mon Dec 28, 2026 (Boxing Day observed), and Fri Jan 1, 2027), and IRCC processing times. The processing-times notice gives no figures and links to IRCC's official processing-times page.
 - **Reset:** the visible "Reset to starting data" buttons are gone. Add `?reset=1` to any dashboard URL to clear `mkc_demo_v2` and reseed; the parameter is then removed from the URL.
@@ -114,6 +114,24 @@ On the client checklist, the sample eye button sits inline after the requirement
   - `client-app-header(-640).webp`: application header (job e97b73c6)
   - `client-empty(-240).webp`: empty states (job 150cfd0a)
 
-## Client emails (20261020a)
+## Client emails (20261020c)
 
 Migration `emailsV: 1` rewrites seeded client emails to `firstname.lastname@example.com` (lowercase ASCII, accents stripped, apostrophes and spaces dropped), e.g. amara.okafor@example.com, mateo.fernandez@example.com, liam.oconnor@example.com, meilin.wong@example.com. It only changes emails that still match the old seeded pattern (`client@demo.ca` for C001, `sampleNN@demo.ca` for the others), so emails edited by the user are kept. It runs once, after the name migration. The demo logins (client@demo.ca / client123, owner@demo.ca / owner123) are hard-coded in `login.html` and do not depend on C001's stored email, so they still work. The add-client placeholder is now name@example.com.
+
+## Support chat (20261020c)
+
+- **Data:** `mkc_demo_v2.threads[clientId] = {messages:[{id, from:'owner'|'client', text, ts}], read:{owner, client}}`, one thread per client, with migration flag `threadsV: 1`. Seeded threads: C001 Amara Okafor (Work Permit, missing fee receipts), C002 Priya Sharma (Visitor Visa, invitation letter), C003 Mateo Fernández (Permanent Residence, residence history; 2 unread for the owner) and C004 Wei Chen (Citizenship; the reply points to IRCC's processing-times page and gives no figures).
+- **Sync:** `assets/messages.js` reads fresh data on each action and re-renders on the window `storage` event, so an owner tab and a client tab in the same browser stay in sync. `save()` merges threads with what is already stored (messages joined by id, read markers take the latest), so a tab holding older data can't drop new messages.
+- **UI rules:**
+  - A centred timestamp separator starts a new group after a gap of more than 15 minutes or a change of day, formatted `Mon | Oct 19, 2026 | 7:59 PM` (Intl, America/Toronto).
+  - Enter sends; Shift+Enter adds a new line.
+  - The log scrolls to the newest message.
+  - Your last message shows Sent or Seen (Seen once the other side has opened the thread).
+  - Text is HTML-escaped and shown as plain text (`pre-wrap`).
+- **Owner:** `owner/messages.html` has a searchable conversation list (initials, name, preview, relative time, unread dot) and a thread pane (name, client code, visa, status pill, "View client" → `clients.html?client=ID`, which opens that client). Owner messages are navy on the right; client messages are grey on the left. Every owner sidebar has **Messages** with an unread badge. On mobile (≤760px) the thread opens full screen with a back button.
+- **Client:** every client portal page has a floating **Chat** pill (it reuses `.mkc-chat-fab` from the public `chat.css`) with a red unread badge. It opens a dialog headed "MKC Immigration Solutions" / "We usually reply within 1 business day", with client messages on the right. The dialog keeps keyboard focus inside it, and Esc closes it and returns focus to the button. It is full screen at ≤560px. The pill sits at z-index 50 (below modals at 60), and the page gets 104px of bottom padding so it never covers content. The public-site chat bot is unchanged.
+
+## New conversation and Message buttons (20261020c)
+
+- `owner/messages.html`: a **New conversation** button at the top of the list opens a dialog with a client picker (a combobox and listbox). It filters by name, C-code or email. Up/Down/Home/End move through the list, Enter picks, and Esc or × closes it and returns focus to the button. Clients who already have a thread are tagged "Existing". Picking a client opens their thread with the composer focused. A client with no messages appears at the top of the list as "No messages yet" but is **not saved** until the first message is sent, so empty threads never stay in `mkc_demo_v2`.
+- `owner/clients.html`: each row has a **Message** button (the column is now "Actions"), and the Edit Client modal has a Message link. Both go to `messages.html?c=<id>`, which opens that thread with the composer focused.

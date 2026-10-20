@@ -40,7 +40,7 @@ if(page==='client-dashboard'){
  wireReset();
 }
 /* Empty-state block. Image: AI-generated still (Higgsfield gpt_image_2_5), disclosed in its alt text. */
-function emptyState(title,body){return '<div class="empty-state"><img src="../assets/client-empty.webp?v=20261020a" srcset="../assets/client-empty-240.webp?v=20261020a 240w, ../assets/client-empty.webp?v=20261020a 480w" sizes="200px" width="480" height="360" alt="AI-generated image: a tidy, empty desk tray beside a cup and a small plant"><div><h3>'+esc(title)+'</h3><p class="muted">'+esc(body)+'</p></div></div>';}
+function emptyState(title,body){return '<div class="empty-state"><img src="../assets/client-empty.webp?v=20261020c" srcset="../assets/client-empty-240.webp?v=20261020c 240w, ../assets/client-empty.webp?v=20261020c 480w" sizes="200px" width="480" height="360" alt="AI-generated image: a tidy, empty desk tray beside a cup and a small plant"><div><h3>'+esc(title)+'</h3><p class="muted">'+esc(body)+'</p></div></div>';}
 /* Owner-updates carousel: arrows, dots, swipe, Left/Right keys, optional autoplay (off by default; pauses on hover/focus; unavailable under reduced motion). */
 function initCarousel(items){var track=$('announcements'),vp=$('cViewport'),dots=$('cDots'),root=$('updates');if(!track)return;var n=items.length,i=0,timer=null,playing=false,paused=false;
  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -69,7 +69,7 @@ if(page==='application'){
  var FL={'received':'Received','pending review':'Pending review','approved':'Approved','rejected':'Rejected'};
  function render(focusSel){ var p=S.progress(data,app); var done=cl.filter(function(x){return x.done;}).length;
   /* Header image: AI-generated still (Higgsfield gpt_image_2_5), disclosed in alt text. */
-  $('appDetail').innerHTML='<div class="app-hero"><img src="../assets/client-app-header.webp?v=20261020a" srcset="../assets/client-app-header-640.webp?v=20261020a 640w, ../assets/client-app-header.webp?v=20261020a 1280w" sizes="(max-width: 900px) 100vw, 960px" width="1280" height="300" alt="AI-generated image: a plain navy folder, a pen and a clipboard on a wooden desk"></div>'
+  $('appDetail').innerHTML='<div class="app-hero"><img src="../assets/client-app-header.webp?v=20261020c" srcset="../assets/client-app-header-640.webp?v=20261020c 640w, ../assets/client-app-header.webp?v=20261020c 1280w" sizes="(max-width: 900px) 100vw, 960px" width="1280" height="300" alt="AI-generated image: a plain navy folder, a pen and a clipboard on a wooden desk"></div>'
   +'<p>'+badge(app.status)+' <span class="badge">'+esc(app.type)+'</span></p><h2>'+esc(app.type)+' application</h2><p class="muted">Started '+esc(app.date)+' · Effective '+esc(S.effectiveDateOf(data,app)||'—')+'</p>'
   +'<div class="bar" role="progressbar" aria-valuenow="'+p+'" aria-valuemin="0" aria-valuemax="100" aria-label="Checklist progress"><i style="width:'+p+'%"></i></div><p><strong>'+p+'% complete</strong> · Checklist status: <strong>'+(p===100?'Complete':'Incomplete')+'</strong> ('+done+' of '+cl.length+' done)</p>'
   +(app.status==='Review'?'<p class="review-note">All required documents are uploaded. Our office is reviewing your application.</p>':'')
@@ -279,7 +279,7 @@ if(page==='clients'){
   return data.clients.filter(function(c){var apps=data.applications.filter(function(a){return a.clientId===c.id;});var name=S.clientName(c).toLowerCase();
    return (!q||name.indexOf(q)>-1||apps.some(function(a){return a.type.toLowerCase().indexOf(q)>-1;})) && (!st||apps.some(function(a){return a.status===st;})) && (!ty||apps.some(function(a){return a.type===ty;}));});}
  function render(){var list=filtered();var pages=Math.max(1,Math.ceil(list.length/per));if(cur>pages)cur=pages;var slice=list.slice((cur-1)*per,cur*per);
-  $('clientRows').innerHTML=slice.map(function(c){var apps=data.applications.filter(function(a){return a.clientId===c.id;});var latest=apps[apps.length-1];return '<tr><td>'+esc(S.clientName(c))+'</td><td>'+esc(c.email)+'</td><td>'+esc(c.phone)+'</td><td>'+apps.length+'</td><td>'+(latest?esc(latest.type)+' · '+esc(latest.status):'—')+'</td><td><button type="button" class="icon-btn" data-edit-client="'+c.id+'" aria-label="Edit client '+esc(S.clientName(c))+'" title="Edit client">'+PENCIL+'</button></td></tr>';}).join('');
+  $('clientRows').innerHTML=slice.map(function(c){var apps=data.applications.filter(function(a){return a.clientId===c.id;});var latest=apps[apps.length-1];return '<tr><td>'+esc(S.clientName(c))+'</td><td>'+esc(c.email)+'</td><td>'+esc(c.phone)+'</td><td>'+apps.length+'</td><td>'+(latest?esc(latest.type)+' · '+esc(latest.status):'—')+'</td><td class="row-acts"><button type="button" class="icon-btn" data-edit-client="'+c.id+'" aria-label="Edit client '+esc(S.clientName(c))+'" title="Edit client">'+PENCIL+'</button><a class="btn sm msg-btn" href="messages.html?c='+encodeURIComponent(c.id)+'" aria-label="Message '+esc(S.clientName(c))+'">Message</a></td></tr>';}).join('');
   $('pageInfo').textContent='Page '+cur+' of '+pages+' · '+list.length+' clients';
   $('prevPage').disabled=cur<=1; $('nextPage').disabled=cur>=pages;
   document.querySelectorAll('[data-edit-client]').forEach(function(b){b.addEventListener('click',function(){openEdit(b.getAttribute('data-edit-client'),b);});});}
@@ -294,7 +294,7 @@ if(page==='clients'){
   S.save(data);
   document.querySelectorAll('#editApps [data-app]').forEach(function(el){function go(){openDocs(el.getAttribute('data-app'),el);}
    el.addEventListener('click',go);el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});});}
- function openEdit(cid,btn){editingId=cid;var c=clientById(cid);$('editFirst').value=c.first||'';$('editMiddle').value=c.middle||'—';$('editLast').value=c.last||'';$('editEmail').value=c.email;$('editPhone').value=c.phone;$('editClientName').textContent=S.clientName(c);renderEditApps();openModal('editClientModal');if(btn)lastFocus=btn;}
+ function openEdit(cid,btn){editingId=cid;var c=clientById(cid);$('editFirst').value=c.first||'';$('editMiddle').value=c.middle||'—';$('editLast').value=c.last||'';$('editEmail').value=c.email;$('editPhone').value=c.phone;$('editClientName').textContent=S.clientName(c);if($('editClientMsg')){$('editClientMsg').href='messages.html?c='+encodeURIComponent(cid);$('editClientMsg').setAttribute('aria-label','Message '+S.clientName(c));}renderEditApps();openModal('editClientModal');if(btn)lastFocus=btn;}
  populateEffective($('newVisaType').value,$('newEffective'));
  $('newVisaType').addEventListener('change',function(){populateEffective($('newVisaType').value,$('newEffective'));});
  $('addClientBtn').addEventListener('click',function(){openModal('addClientModal');});
@@ -313,6 +313,7 @@ if(page==='clients'){
  $('addAppForClient').addEventListener('click',function(){if(!editingId)return;var v=selectedVisa($('editEffective'));if(!v){$('editAppError').textContent='Cannot add: a visa with an effective date is needed first. Add an effective date for this visa type on the Visas page.';return;}$('editAppError').textContent='';var a={id:'a-'+Date.now(),clientId:editingId,type:$('editVisaType').value,visaId:v.id,effectiveDate:v.effective,status:'New',date:S.today(),createdAt:S.today(),updatedAt:S.today(),progress:0};data.applications.push(a);S.save(data);renderEditApps();render();$('editMsg').textContent='Added '+a.type+' application.';});
  ['search','fStatus','fType'].forEach(function(id){$(id).addEventListener('input',function(){cur=1;render();});});
  $('prevPage').addEventListener('click',function(){cur--;render();}); $('nextPage').addEventListener('click',function(){cur++;render();}); render();
+ var deep=new URLSearchParams(location.search).get('client');if(deep&&clientById(deep))setTimeout(function(){openEdit(deep,null);},0);
 }
 
 /* ================= OWNER: documents ================= */

@@ -177,3 +177,93 @@ body.shad .card.req{display:block}
 body.shad .card.req .file-list{width:100%}
 body.shad .app-hero{aspect-ratio:auto;height:180px;max-height:none;width:100%}
 @media (max-width:560px){body.shad .app-hero{height:120px}}
+/* ================= Support chat (owner/messages.html + client portal dialog). Unscoped so it works on every portal page. ================= */
+.chat-log{flex:1;min-height:0;overflow-y:auto;padding:16px;background:#fafafa;display:flex;flex-direction:column;gap:4px;scroll-behavior:smooth}
+.chat-log:focus-visible{outline:2px solid #0a1f3d;outline-offset:-2px}
+.chat-empty{margin:auto;color:#71717a;font-size:.9rem;text-align:center}
+.chat-sep{display:flex;justify-content:center;margin:14px 0 8px}
+.chat-sep span{font-size:.72rem;color:#71717a;font-weight:500;letter-spacing:.01em}
+.chat-msg{display:flex;flex-direction:column;max-width:78%;align-self:flex-start}
+.chat-msg.mine{align-self:flex-end;align-items:flex-end}
+.chat-bubble{margin:0;padding:8px 12px;border-radius:18px;font-size:.92rem;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;background:#f1f1f3;color:#18181b;border:1px solid #e4e4e7}
+.chat-msg.from-owner .chat-bubble{background:#0a1f3d;color:#fff;border-color:#0a1f3d}
+.chat-msg.from-client.mine .chat-bubble{background:#0a1f3d;color:#fff;border-color:#0a1f3d}
+.chat-msg.from-owner.theirs .chat-bubble{background:#f1f1f3;color:#18181b;border-color:#e4e4e7}
+.chat-msg.mine .chat-bubble{border-bottom-right-radius:6px}.chat-msg.theirs .chat-bubble{border-bottom-left-radius:6px}
+.chat-status{font-size:.7rem;color:#71717a;margin:3px 4px 0}
+.chat-composer{display:flex;align-items:flex-end;gap:8px;padding:10px 12px;border-top:1px solid #e4e4e7;background:#fff}
+.chat-composer[hidden]{display:none}
+.chat-composer textarea{flex:1;min-width:0;resize:none;max-height:140px;min-height:40px;border:1px solid #e4e4e7;border-radius:20px;padding:9px 14px;font:inherit;font-size:.92rem;line-height:1.4;background:#fff;color:#18181b;field-sizing:content}
+.chat-composer textarea:focus-visible{outline:2px solid #0a1f3d;outline-offset:1px}
+.chat-send{flex:none;width:40px;height:40px;border-radius:999px;border:0;background:#0a1f3d;color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.chat-send:hover{background:#123665}.chat-send:focus-visible{outline:2px solid #c6a15b;outline-offset:2px}
+.avatar{flex:none;width:38px;height:38px;border-radius:999px;background:#e8edf5;color:#0a1f3d;font-weight:700;font-size:.8rem;display:inline-flex;align-items:center;justify-content:center}
+/* owner messenger */
+.msgr-h1{margin:0 0 14px}
+.msgr{display:grid;grid-template-columns:320px minmax(0,1fr);height:calc(100vh - 170px);min-height:480px;border:1px solid #e4e4e7;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.msgr-list{border-right:1px solid #e4e4e7;display:flex;flex-direction:column;min-height:0}
+.msgr-search{padding:12px;border-bottom:1px solid #e4e4e7}
+.msgr-search input{width:100%;height:38px;border:1px solid #e4e4e7;border-radius:8px;padding:0 12px;font:inherit;font-size:.9rem;margin:0}
+.conv-list{list-style:none;margin:0;padding:6px;overflow-y:auto;flex:1}
+.conv{width:100%;display:flex;align-items:center;gap:10px;padding:10px;border:0;border-radius:8px;background:transparent;text-align:left;cursor:pointer;font:inherit;color:#18181b;position:relative}
+.conv:hover{background:#f4f4f5}.conv.active{background:#eef2f8}
+.conv:focus-visible{outline:2px solid #0a1f3d;outline-offset:-2px}
+.conv-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.conv-top{display:flex;justify-content:space-between;gap:8px}
+.conv-name{font-weight:600;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.conv-time{font-size:.74rem;color:#71717a;flex:none}
+.conv-prev{font-size:.82rem;color:#71717a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.conv.has-unread .conv-name,.conv.has-unread .conv-prev{color:#18181b;font-weight:600}
+.unread-dot{flex:none;width:10px;height:10px;border-radius:999px;background:#2563eb}
+.conv-none{padding:16px;color:#71717a;font-size:.88rem}
+.msgr-thread{display:flex;flex-direction:column;min-width:0;min-height:0}
+.thread-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #e4e4e7;min-height:64px}
+.thread-head:empty{display:none}
+.thread-id{flex:1;min-width:0}.thread-id h2{margin:0;font-size:1rem}.thread-id p{margin:2px 0 0;font-size:.8rem;color:#71717a;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.thread-link{height:34px!important;font-size:.82rem!important;text-decoration:none}
+.thread-back{display:none;width:36px;height:36px;border:1px solid #e4e4e7;border-radius:8px;background:#fff;align-items:center;justify-content:center;cursor:pointer;color:#18181b}
+@media (max-width:760px){
+ .msgr{grid-template-columns:1fr;height:auto;min-height:0;border-radius:12px}
+ .msgr-list{border-right:0}.conv-list{max-height:none}
+ .msgr-thread{display:none}
+ .msgr.show-thread .msgr-thread{display:flex;position:fixed;inset:0;z-index:58;background:#fff}
+ .thread-back{display:inline-flex}
+ .thread-link{padding:0 10px!important}
+}
+/* client floating chat (matches public-site .mkc-chat-fab from chat.css) */
+.portal-chat{position:fixed;right:18px;bottom:18px;z-index:50;font-family:inherit}
+.portal-chat-fab{position:relative}
+.portal-chat-fab:focus-visible{outline:3px solid #c6a15b;outline-offset:3px}
+.pc-badge{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#dc2626;color:#fff;font-size:.72rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;border:2px solid #fff}
+.pc-badge[hidden]{display:none}
+.pc-panel{position:fixed;right:18px;bottom:86px;width:min(380px,calc(100vw - 36px));height:min(600px,calc(100dvh - 110px));background:#fff;border:1px solid #e4e4e7;border-radius:16px;box-shadow:0 24px 60px rgba(7,20,38,.28);display:flex;flex-direction:column;overflow:hidden;z-index:55}
+.pc-panel[hidden]{display:none}
+.pc-head{display:flex;align-items:center;gap:10px;padding:14px 14px 14px 16px;background:#0a1f3d;color:#fff}
+.pc-head h2{margin:0;font-size:1rem;color:#fff}.pc-head p{margin:2px 0 0;font-size:.78rem;color:#cfe0f4}
+.pc-head>div{flex:1;min-width:0}
+.pc-logo{background:#c6a15b;color:#0a1f3d;font-size:.66rem;letter-spacing:.04em}
+.pc-close{flex:none;width:36px;height:36px;border-radius:999px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;font-size:1.3rem;line-height:1;cursor:pointer}
+.pc-close:focus-visible{outline:2px solid #c6a15b;outline-offset:2px}
+body.has-portal-chat .main{padding-bottom:104px}
+@media (max-width:560px){
+ .portal-chat{right:12px;bottom:12px}
+ .pc-panel{inset:0;width:auto;height:auto;border-radius:0;border:0}
+ body.pc-open .portal-chat-fab{display:none}
+ body.pc-open{overflow:hidden}
+}
+@media (prefers-reduced-motion:reduce){.chat-log{scroll-behavior:auto}}
+/* New conversation button + client picker */
+.msgr-new{padding:12px 12px 0}
+.new-conv{width:100%!important;height:38px!important;background:#0a1f3d!important;color:#fff!important;border-radius:8px!important;font:500 .875rem/1 inherit;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;cursor:pointer}
+.new-conv:focus-visible{outline:2px solid #c6a15b;outline-offset:2px}
+.picker-modal{max-width:460px;width:100%;position:relative}
+.picker-modal #pickSearch{width:100%;height:40px;border:1px solid #e4e4e7;border-radius:8px;padding:0 12px;font:inherit;margin:6px 0 10px}
+.picker-modal #pickSearch:focus-visible{outline:2px solid #0a1f3d;outline-offset:1px}
+.pick-list{list-style:none;margin:0;padding:4px;max-height:min(360px,55vh);overflow-y:auto;border:1px solid #e4e4e7;border-radius:8px}
+.pick{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer}
+.pick:hover{background:#f4f4f5}.pick.active{background:#eef2f8;box-shadow:inset 2px 0 0 #0a1f3d}
+.pick-body{flex:1;min-width:0;display:flex;flex-direction:column}
+.pick-name{font-weight:600;font-size:.9rem}.pick-code{font-weight:500;color:#71717a;font-size:.76rem;margin-left:4px}
+.pick-mail{font-size:.8rem;color:#71717a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick-has{font-size:.7rem;color:#0a1f3d;background:#e8edf5;border-radius:999px;padding:2px 8px;flex:none}
+.pick-none{padding:12px;color:#71717a;font-size:.88rem}

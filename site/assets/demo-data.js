@@ -64,7 +64,7 @@ function migrate(old){
 function stripDocTypes(d){var changed=false;(d.documents||[]).forEach(function(doc){if('type' in doc){delete doc.type;changed=true;}if('applicationType' in doc){delete doc.applicationType;changed=true;}});return changed;}
 function load(){try{var raw=localStorage.getItem(KEY);if(raw){var d=JSON.parse(raw);if(d&&d.version===2){var ch=stripDocTypes(d);if(migrateApps(d))ch=true;if(migrateDocs(d))ch=true;if(migrateMetrics(d))ch=true;if(migrateSamples(d))ch=true;if(migrateNames(d))ch=true;if(migrateAll(d))ch=true;if(ch)save(d);return d;}}
  var oldRaw=localStorage.getItem(OLDKEY); if(oldRaw){var m=migrate(JSON.parse(oldRaw)); migrateNames(m);migrateAll(m);save(m); return m;}}catch(e){} var s=seed();migrateDocs(s);migrateMetrics(s);migrateSamples(s);migrateNames(s);migrateAll(s);save(s);return s;}
-function save(d){try{localStorage.setItem(KEY,JSON.stringify(d));return true;}catch(e){if(window.console)console.warn('MKC: could not save (storage full?)');return false;}}
+function save(d){try{mergeThreads(d);localStorage.setItem(KEY,JSON.stringify(d));return true;}catch(e){if(window.console)console.warn('MKC: could not save (storage full?)');return false;}}
 function reset(){localStorage.removeItem(KEY);localStorage.removeItem(OLDKEY);return load();}
 function visaFor(data,app){if(app.visaId){var byId=(data.visas||[]).find(function(v){return v.id===app.visaId;});if(byId)return byId;}return (data.visas||[]).find(function(v){return v.name===app.type;});}
 function distinctTypes(data){var seen={},out=[];(data.visas||[]).forEach(function(v){if(!seen[v.name]){seen[v.name]=1;out.push(v.name);}});return out;}
@@ -183,7 +183,44 @@ function migrateEmails(data){if(data.emailsV>=1)return false;
  (data.clients||[]).forEach(function(c){var old=c.id==='c-demo'?c.email==='client@demo.ca':/^sample\d{2}@demo\.ca$/.test(c.email||'');
   var f=emailPart(c.first),l=emailPart(c.last);if(old&&f&&l)c.email=f+'.'+l+'@example.com';});
  data.emailsV=1;return true;}
-function migrateAll(d){var ch=false;if(migrateFiles(d))ch=true;if(migrateCopy(d))ch=true;if(migrateEmails(d))ch=true;if(!d.reviewV){(d.applications||[]).forEach(function(a){syncReview(d,a);});d.reviewV=1;ch=true;}return ch;}
+/* ---- threadsV:1 — support chat. data.threads[clientId] = {messages:[{id,from:'owner'|'client',text,ts}], read:{owner:ms,client:ms}}.
+   One thread per client. Every save() merges with what is already stored (messages unioned by id, read markers take the max),
+   so a tab holding older data can never drop messages written by another tab. */
+function mergeThreads(d){if(!d||!d.threads)return;var cur=null;try{var raw=localStorage.getItem(KEY);cur=raw?JSON.parse(raw):null;}catch(e){}
+ if(!cur||!cur.threads)return;Object.keys(cur.threads).forEach(function(cid){var a=cur.threads[cid],b=d.threads[cid];
+  if(!b){d.threads[cid]=a;return;}var ids={};b.messages.forEach(function(m){ids[m.id]=1;});
+  a.messages.forEach(function(m){if(!ids[m.id])b.messages.push(m);});b.messages.sort(function(x,y){return x.ts-y.ts;});
+  b.read=b.read||{};['owner','client'].forEach(function(k){b.read[k]=Math.max(b.read[k]||0,(a.read||{})[k]||0);});});}
+function tor(y,mo,dd,h,mi){return Date.UTC(y,mo-1,dd,h+4,mi);} /* Toronto EDT (UTC-4) wall time -> ms; seeds are all in October */
+function threadsSeed(){var T={};function th(cid,msgs,readOwner,readClient){T[cid]={messages:msgs.map(function(m,i){return {id:cid+'-s'+i,from:m[0],text:m[1],ts:m[2]};}),read:{owner:readOwner,client:readClient}};}
+ th('c-demo',[
+  ['client','Hi, I uploaded my passport, the signed forms and my employment letter for the work permit. Is there anything else you need from me?',tor(2026,10,16,10,2)],
+  ['owner','Hi Amara, thanks, those all came through. The only item still missing is your fee receipts. Could you upload them under “Fee receipts” on your application page?',tor(2026,10,16,10,41)],
+  ['client','Sure. Do you need a receipt for every payment or just the main one?',tor(2026,10,16,10,44)],
+  ['owner','Please upload a receipt for each fee you paid for this application. If you have more than one, you can add them as separate files under the same requirement.',tor(2026,10,16,10,47)],
+  ['client','I found two of the receipts. I’ll upload them tonight and send the last one tomorrow.',tor(2026,10,19,19,59)]],
+  tor(2026,10,16,10,47),tor(2026,10,16,10,47));
+ th('c1',[
+  ['client','Hello, my invitation letter is from my cousin in Mississauga. Does it need to be signed?',tor(2026,10,14,9,15)],
+  ['owner','Good morning Priya. Yes, please make sure the letter is signed and dated by your cousin, and that it includes their contact details and address in Canada.',tor(2026,10,14,9,52)],
+  ['client','Thank you, I’ll ask him to update it.',tor(2026,10,14,9,58)],
+  ['owner','Sounds good. Once you have the signed copy, upload it to your Visitor Visa application and let me know here.',tor(2026,10,14,10,3)]],
+  tor(2026,10,14,9,58),tor(2026,10,14,10,3));
+ th('c2',[
+  ['owner','Hi Mateo, your language test results are on file. Next, we’ll need your residence history for the last ten years. A simple list of addresses with dates is fine to start.',tor(2026,10,17,14,20)],
+  ['client','Okay. Should I include the year I spent in Valencia for work?',tor(2026,10,18,11,6)],
+  ['client','It was only about eight months.',tor(2026,10,18,11,7)]],
+  0,tor(2026,10,17,14,20));
+ th('c3',[
+  ['client','Hi, how long is the citizenship application taking right now?',tor(2026,10,12,16,30)],
+  ['owner','Hi Wei, processing times change often and are set by IRCC, so the best source is IRCC’s official processing times page. We’ll keep you updated on anything that affects your file.',tor(2026,10,12,17,5)],
+  ['client','Got it, thanks!',tor(2026,10,12,17,9)]],
+  tor(2026,10,12,17,9),tor(2026,10,12,17,5));
+ return T;}
+function migrateThreads(data){if(data.threadsV>=1)return false;data.threads=data.threads||{};var seed=threadsSeed();
+ Object.keys(seed).forEach(function(cid){if(!data.threads[cid]&&(data.clients||[]).some(function(c){return c.id===cid;}))data.threads[cid]=seed[cid];});
+ data.threadsV=1;return true;}
+function migrateAll(d){var ch=false;if(migrateThreads(d))ch=true;if(migrateFiles(d))ch=true;if(migrateCopy(d))ch=true;if(migrateEmails(d))ch=true;if(!d.reviewV){(d.applications||[]).forEach(function(a){syncReview(d,a);});d.reviewV=1;ch=true;}return ch;}
 /* save that reports quota failures instead of throwing */
 function trySave(d){return save(d);}
 function progress(data,app){var visa=visaFor(data,app);if(visa){if(!visa.docIds.length)return 100;var stored={};(data.checklists[app.id]||[]).forEach(function(r){stored[r.docId]=r;});var done=visa.docIds.filter(function(id){return stored[id]&&stored[id].done;}).length;return Math.round(done/visa.docIds.length*100);}return typeof app.progress==='number'?app.progress:0;}
