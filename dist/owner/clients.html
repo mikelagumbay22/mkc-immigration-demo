@@ -1,6 +1,6 @@
 <!doctype html><html lang="en-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>Clients | MKC Dashboard (demo concept)</title>
-<link rel="icon" href="../assets/favicon.ico"><link rel="stylesheet" href="../assets/dashboard.css?v=20261019d">
+<link rel="icon" href="../assets/favicon.ico"><link rel="stylesheet" href="../assets/dashboard.css?v=20261020a">
 <script>(function(){var r=sessionStorage.getItem('mkc_demo_role');if(r!=='owner'){location.replace('../login.html');}})();</script>
 </head><body data-page="clients" data-role="owner">
 <div class="topbar"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="150" height="46"><button class="btn" type="button" data-menu aria-expanded="false" aria-controls="sideNav">☰ Menu</button></div>
@@ -8,7 +8,7 @@
 <main class="main" id="main"><h1>Clients</h1>
 <p><button class="btn navy" id="addClientBtn" type="button">＋ Add client</button></p>
 <form class="card filters" onsubmit="return false"><div><label for="search">Search by name or application type</label><input id="search" type="search"></div>
-<div><label for="fStatus">Filter by status</label><select id="fStatus"><option value="">All statuses</option><option>New</option><option>Active</option><option>Submitted</option><option>Approved</option><option>Denied</option><option>Cancelled</option></select></div>
+<div><label for="fStatus">Filter by status</label><select id="fStatus"><option value="">All statuses</option><option>New</option><option>Active</option><option>Submitted</option><option>Review</option><option>Approved</option><option>Denied</option><option>Cancelled</option></select></div>
 <div><label for="fType">Filter by application type</label><select id="fType"><option value="">All types</option><option>Work Permit</option><option>Visitor Visa</option><option>Tourist Visa</option><option>Permanent Residence</option><option>Student Visa</option><option>Citizenship</option><option>General Consulting</option></select></div></form>
 <div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Client</th><th>Email</th><th>Phone</th><th>Applications</th><th>Latest application</th><th>Edit</th></tr></thead><tbody id="clientRows"></tbody></table></div>
 <p><button class="btn" id="prevPage" type="button">← Previous</button> <span id="pageInfo" role="status"></span> <button class="btn" id="nextPage" type="button">Next →</button></p>
@@ -17,7 +17,7 @@
 <form id="addClientForm"><label for="newFirst">First name *</label><input id="newFirst" required>
 <label for="newMiddle">Middle name (optional)</label><input id="newMiddle">
 <label for="newLast">Last name *</label><input id="newLast" required>
-<label for="newEmail">Email address *</label><input id="newEmail" type="email" placeholder="name@demo.ca" required>
+<label for="newEmail">Email address *</label><input id="newEmail" type="email" placeholder="name@example.com" required>
 <label for="newPhone">Contact number</label><input id="newPhone" type="tel" placeholder="(905) 555-01xx">
 <label for="newVisaType">Visa application type *</label><select id="newVisaType" required></select>
 <label for="newEffective">Effective date</label><select id="newEffective"></select>
@@ -47,4 +47,5 @@
 <div id="docsMissingWrap"><h3>Missing required documents</h3><ul id="docsMissing" class="doc-missing"></ul></div>
 <p id="docsMsg" class="muted" role="status" aria-live="polite"></p>
 <div class="actions"><button class="btn navy" type="button" data-close="docsModal">Close</button></div></div></div><footer class="mini-footer"><p class="policy-links"><a href="../privacy.html">Privacy Policy</a><span class="sep" aria-hidden="true">|</span><a href="../cookies.html">Cookies Policy</a></p><p class="mini-disc">Demo concept, not affiliated with or approved by MKC Immigration Solutions Inc.</p></footer></main></div>
-<script src="../assets/demo-data.js?v=20261019d"></script><script src="../assets/dashboard.js?v=20261019d"></script></body></html>
+<div class="modal-back" id="fileDeleteModal" hidden><div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="fileDeleteTitle" aria-describedby="fileDeleteMsg"><h2 id="fileDeleteTitle">Delete uploaded document?</h2><p id="fileDeleteMsg"></p><div class="actions"><button class="btn ghost s-btn" type="button" data-close="fileDeleteModal" data-autofocus>Cancel</button><button class="btn danger-btn s-btn" type="button" id="confirmFileDelete">Delete</button></div></div></div>
+<script src="../assets/sample-seeds.js?v=20261020a"></script><script src="../assets/demo-data.js?v=20261020a"></script><script src="../assets/dashboard.js?v=20261020a"></script></body></html>

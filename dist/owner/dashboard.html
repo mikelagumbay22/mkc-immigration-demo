@@ -1,23 +1,37 @@
 <!doctype html><html lang="en-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>Owner Dashboard | MKC Dashboard (demo concept)</title>
-<link rel="icon" href="../assets/favicon.ico"><link rel="stylesheet" href="../assets/dashboard.css?v=20261019d">
+<link rel="icon" href="../assets/favicon.ico"><link rel="stylesheet" href="../assets/dashboard.css?v=20261020a"><link rel="stylesheet" href="../assets/shad.css?v=20261020a">
 <script>(function(){var r=sessionStorage.getItem('mkc_demo_role');if(r!=='owner'){location.replace('../login.html');}})();</script>
-</head><body data-page="owner-dashboard" data-role="owner">
+</head><body class="shad" data-page="owner-dashboard" data-role="owner">
 <a class="skip" href="#main" style="position:absolute;left:-9999px">Skip to content</a>
 <div class="topbar"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="150" height="46"><button class="btn" type="button" data-menu aria-expanded="false" aria-controls="sideNav">☰ Menu</button></div>
 <div class="dash">
 <aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p>Signed in as<br><strong>Owner</strong></p><nav aria-label="Dashboard"><a href="dashboard.html" aria-current="page">Dashboard</a><a href="clients.html">Clients</a><a href="documents.html">Documents</a><a href="visas.html">Visas</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav></aside>
 <main class="main" id="main">
-<h1>Owner dashboard</h1><p class="muted">Signed in as Owner.</p>
-<div class="cards" id="kpis"></div>
-<section class="card"><h2>Cases by status</h2><div id="chart"></div></section>
-<section class="card" style="margin-top:18px"><h2>Overdue cases</h2><p class="muted">Based on the legacy <em>due</em> date on older applications. New applications have an effective date instead and never appear here.</p><ul id="overdue"></ul></section>
-<section style="margin-top:18px"><h2>Recent applicants</h2><div class="tablewrap"><table><thead><tr><th>No.</th><th>Applicant</th><th>Application type</th><th>Status</th><th>Effective date</th></tr></thead><tbody id="recent"></tbody></table></div></section>
-<form id="addApp" class="card" style="margin-top:18px"><h2>+ Add new application</h2>
-<label for="appClient">Applicant</label><select id="appClient"></select>
-<label for="appType">Application type</label><select id="appType"><option>Work Permit</option><option>Visitor Visa</option><option>Permanent Residence</option><option>Citizenship</option><option>General Consulting</option></select>
-<label for="appStatus">Status</label><select id="appStatus"><option>New</option><option>Active</option><option>Submitted</option><option>Approved</option><option>Denied</option><option>Cancelled</option></select>
-<label for="appEffective">Effective date</label><select id="appEffective"></select>
-<p id="addMsg" role="status" aria-live="polite"></p><button class="btn navy" type="submit">Add application</button></form><footer class="mini-footer"><p class="policy-links"><a href="../privacy.html">Privacy Policy</a><span class="sep" aria-hidden="true">|</span><a href="../cookies.html">Cookies Policy</a></p><p class="mini-disc">Demo concept, not affiliated with or approved by MKC Immigration Solutions Inc.</p></footer></main></div>
-<script src="../assets/demo-data.js?v=20261019d"></script><script src="../assets/dashboard.js?v=20261019d"></script>
+<header class="page-head"><div><h1>Owner dashboard</h1><p class="muted">Signed in as Owner.</p></div></header>
+<div class="kpi-grid" id="kpis"></div>
+<div class="chart-grid">
+<section class="s-card chart-card"><div class="s-card-head"><h2>Revenue</h2><p>Per month, last 12 months</p></div><div class="chart-box"><canvas id="revChart"></canvas></div><div id="revTable"></div></section>
+<section class="s-card chart-card"><div class="s-card-head"><h2>Total clients</h2><p>Month-end total, last 12 months</p></div><div class="chart-box"><canvas id="cliChart"></canvas></div><div id="cliTable"></div></section>
+<section class="s-card chart-card"><div class="s-card-head"><h2>Active cases</h2><p>By visa type</p></div><div class="donut-wrap"><div class="chart-box donut"><canvas id="actChart"></canvas></div><ul class="legend" id="actLegend"></ul></div><div id="actTable"></div></section>
+<section class="s-card chart-card"><div class="s-card-head"><h2>Awaiting documents</h2><p>Cases with required documents missing, by visa type</p></div><div class="chart-box"><canvas id="awChart"></canvas></div><div id="awTable"></div></section>
+<section class="s-card chart-card span-2"><div class="s-card-head row"><div><h2>Cases by status</h2><p>All cases at each month end, last 12 months</p></div><ul class="legend inline" id="stLegend"></ul></div><div class="chart-box tall"><canvas id="stChart"></canvas></div><div id="stTable"></div></section>
+</div>
+<section class="s-card"><div class="s-card-head row"><div><h2>Overdue cases</h2><p>Based on the legacy due date on older applications. Select a row for details and documents.</p></div><span class="s-badge outline" id="overdueCount"></span></div>
+<div class="s-table-wrap"><table class="s-table stack"><thead><tr><th>Client</th><th>Visa type</th><th>Status</th><th>Due date</th><th class="num">Days overdue</th></tr></thead><tbody id="overdue"></tbody></table></div></section>
+<section class="s-card"><div class="s-card-head"><h2>Recent applicants</h2><p>Newest first</p></div>
+<div class="s-table-wrap"><table class="s-table stack"><thead><tr><th>No.</th><th>Applicant</th><th>Application type</th><th>Status</th><th>Effective date</th></tr></thead><tbody id="recent"></tbody></table></div>
+<div class="pager-row"><p class="muted" id="recentInfo" role="status"></p><nav class="s-pagination" id="recentPager" aria-label="Recent applicants pages" hidden></nav></div></section>
+<div id="chartTip" class="chart-tip" role="presentation" hidden></div>
+<div class="modal-back" id="docsModal" hidden><div class="modal wide docs-modal" role="dialog" aria-modal="true" aria-labelledby="docsTitle">
+<button class="dialog-x" type="button" data-close="docsModal" aria-label="Close" data-autofocus>×</button>
+<div class="docs-head"><h2 id="docsTitle">Application</h2></div>
+<p id="docsSub" class="muted"></p><div id="docsDetails"></div><p id="docsSummary" class="docs-summary" role="status"></p>
+<h3>Submitted documents</h3><ul id="docsList" class="doc-list"></ul>
+<div id="docsMissingWrap"><h3>Missing required documents</h3><ul id="docsMissing" class="doc-missing"></ul></div>
+<p id="docsMsg" class="muted" role="status" aria-live="polite"></p>
+<div class="actions"><button class="s-btn" type="button" data-close="docsModal">Close</button></div></div></div>
+<footer class="mini-footer"><p class="policy-links"><a href="../privacy.html">Privacy Policy</a><span class="sep" aria-hidden="true">|</span><a href="../cookies.html">Cookies Policy</a></p><p class="mini-disc">Demo concept, not affiliated with or approved by MKC Immigration Solutions Inc.</p></footer></main></div>
+<script src="../assets/vendor/chart.umd.min.js?v=20261020a"></script><div class="modal-back" id="fileDeleteModal" hidden><div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="fileDeleteTitle" aria-describedby="fileDeleteMsg"><h2 id="fileDeleteTitle">Delete uploaded document?</h2><p id="fileDeleteMsg"></p><div class="actions"><button class="btn ghost s-btn" type="button" data-close="fileDeleteModal" data-autofocus>Cancel</button><button class="btn danger-btn s-btn" type="button" id="confirmFileDelete">Delete</button></div></div></div>
+<script src="../assets/sample-seeds.js?v=20261020a"></script><script src="../assets/demo-data.js?v=20261020a"></script><script src="../assets/dashboard.js?v=20261020a"></script>
 </body></html>

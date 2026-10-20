@@ -1,15 +1,14 @@
 <!doctype html><html lang="en-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>Tasks | MKC Dashboard (demo concept)</title>
-<link rel="icon" href="../assets/favicon.ico"><link rel="stylesheet" href="../assets/dashboard.css?v=20261019d">
+<link rel="icon" href="../assets/favicon.ico"><link rel="stylesheet" href="../assets/dashboard.css?v=20261020a"><link rel="stylesheet" href="../assets/shad.css?v=20261020a">
 <script>(function(){var r=sessionStorage.getItem('mkc_demo_role');if(r!=='client'){location.replace('../login.html');}})();</script>
-</head><body data-page="tasks" data-role="client">
+</head><body class="shad" data-page="tasks" data-role="client">
 <a class="skip" href="#main" style="position:absolute;left:-9999px">Skip to content</a>
 <div class="topbar"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="150" height="46"><button class="btn" type="button" data-menu aria-expanded="false" aria-controls="sideNav">☰ Menu</button></div>
 <div class="dash">
-<aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p>Signed in as<br><strong>Sample Client</strong></p><nav aria-label="Dashboard"><a href="dashboard.html">Dashboard</a><a href="application.html?id=a1">My Applications</a><a href="tasks.html" aria-current="page">Tasks</a><a href="profile.html">Profile</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav></aside>
+<aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p>Signed in as<br><strong>Amara Okafor</strong></p><nav aria-label="Dashboard"><a href="dashboard.html">Dashboard</a><a href="application.html?id=a1">My Applications</a><a href="tasks.html" aria-current="page">Tasks</a><a href="profile.html">Profile</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav></aside>
 <main class="main" id="main">
 <h1>Tasks</h1>
-<h2>Missing requirements</h2><ul id="autoTasks" style="list-style:none;padding:0;display:grid;gap:12px"></ul>
-<h2>Owner-assigned tasks</h2><ul id="ownerTasks" style="list-style:none;padding:0;display:grid;gap:12px"></ul><footer class="mini-footer"><p class="policy-links"><a href="../privacy.html">Privacy Policy</a><span class="sep" aria-hidden="true">|</span><a href="../cookies.html">Cookies Policy</a></p><p class="mini-disc">Demo concept, not affiliated with or approved by MKC Immigration Solutions Inc.</p></footer></main></div>
-<script src="../assets/demo-data.js?v=20261019d"></script><script src="../assets/dashboard.js?v=20261019d"></script>
+<p class="muted">Documents still needed for your applications, and tasks from our office.</p><div id="tasksWrap"></div><p class="sr-only" id="taskMsg" role="status" aria-live="polite"></p><footer class="mini-footer"><p class="policy-links"><a href="../privacy.html">Privacy Policy</a><span class="sep" aria-hidden="true">|</span><a href="../cookies.html">Cookies Policy</a></p><p class="mini-disc">Demo concept, not affiliated with or approved by MKC Immigration Solutions Inc.</p></footer></main></div>
+<script src="../assets/sample-seeds.js?v=20261020a"></script><script src="../assets/demo-data.js?v=20261020a"></script><script src="../assets/dashboard.js?v=20261020a"></script>
 </body></html>

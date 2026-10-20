@@ -2,6 +2,8 @@
 "use strict";
 var S=window.MKCStore, data=S.load(), esc=S.esc, page=document.body.getAttribute('data-page');
 function $(id){return document.getElementById(id);}
+/* Hidden reset: add ?reset=1 to any dashboard URL to clear mkc_demo_v2 and reseed (the visible button was removed). */
+if(new URLSearchParams(location.search).get('reset')==='1'){S.reset();var ru=new URL(location.href);ru.searchParams.delete('reset');location.replace(ru.pathname+ru.search+ru.hash);return;}
 function appById(id){return data.applications.find(function(a){return a.id===id;});}
 function clientById(id){return data.clients.find(function(c){return c.id===id;});}
 function badge(st){return '<span class="badge '+esc(st)+'">'+esc(st)+'</span>';}
@@ -11,7 +13,7 @@ var TRASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 var lastFocus=null,modalStack=[];/* stack: [{id,ret}] so a modal can open over another; Esc/close returns focus to its opener */
 function topModal(){var t=modalStack[modalStack.length-1];return t?$(t.id):document.querySelector('.modal-back:not([hidden])');}
 function openModal(id,ret){var m=$(id);modalStack=modalStack.filter(function(x){return x.id!==id;});modalStack.push({id:id,ret:ret||document.activeElement});lastFocus=ret||document.activeElement;m.hidden=false;var f=m.querySelector('[data-autofocus]')||m.querySelector('input,select,textarea,button');if(f)f.focus();}
-function closeModal(id){$(id).hidden=true;var i=-1;modalStack.forEach(function(x,k){if(x.id===id)i=k;});var ret=i>-1?modalStack[i].ret:lastFocus;if(i>-1)modalStack.splice(i,1);if(ret&&ret.focus&&document.contains(ret))ret.focus();}
+function closeModal(id){$(id).hidden=true;var i=-1;modalStack.forEach(function(x,k){if(x.id===id)i=k;});var ret=i>-1?modalStack[i].ret:lastFocus;if(i>-1)modalStack.splice(i,1);if(ret&&!document.contains(ret)&&ret.getAttribute&&ret.getAttribute('data-app'))ret=document.querySelector('[data-app="'+ret.getAttribute('data-app')+'"]');if(ret&&ret.focus&&document.contains(ret))ret.focus();}
 document.querySelectorAll('[data-close]').forEach(function(b){b.addEventListener('click',function(){closeModal(b.getAttribute('data-close'));});});
 document.addEventListener('keydown',function(e){
  if(e.key==='Escape'){var tm=topModal();if(tm){e.preventDefault();closeModal(tm.id);}}
@@ -31,25 +33,77 @@ function selectedVisa(sel){return data.visas.find(function(v){return v.id===sel.
 /* ================= CLIENT ================= */
 if(page==='client-dashboard'){
  var mine=data.applications.filter(function(a){return a.clientId==='c-demo';});
- $('announcements').innerHTML=data.announcements.map(function(a){return '<article class="card"><p class="muted">'+esc(a.date)+'</p><h3>'+esc(a.title)+'</h3><p>'+esc(a.body)+'</p></article>';}).join('');
+ var me=clientById('c-demo');if(me&&$('welcomeName'))$('welcomeName').textContent=me.first;
+ initCarousel(data.announcements||[]);
  $('appCards').innerHTML=mine.map(function(a){var p=S.progress(data,a);return '<article class="card"><p>'+badge(a.status)+' <span class="badge">'+esc(a.type)+'</span></p><h3><a href="application.html?id='+a.id+'">'+esc(a.type)+' application</a></h3><p class="muted">Started '+esc(a.date)+' · Effective '+esc(S.effectiveDateOf(data,a)||'—')+'</p><div class="bar" role="progressbar" aria-valuenow="'+p+'" aria-valuemin="0" aria-valuemax="100" aria-label="Checklist progress"><i style="width:'+p+'%"></i></div><p>'+p+'% complete</p><a class="btn navy" href="application.html?id='+a.id+'">Open application</a></article>';}).join('');
+ if(!mine.length)$('appCards').innerHTML=emptyState('No applications yet','When our office opens an application for you, it will appear here.');
  wireReset();
 }
+/* Empty-state block. Image: AI-generated still (Higgsfield gpt_image_2_5), disclosed in its alt text. */
+function emptyState(title,body){return '<div class="empty-state"><img src="../assets/client-empty.webp?v=20261020a" srcset="../assets/client-empty-240.webp?v=20261020a 240w, ../assets/client-empty.webp?v=20261020a 480w" sizes="200px" width="480" height="360" alt="AI-generated image: a tidy, empty desk tray beside a cup and a small plant"><div><h3>'+esc(title)+'</h3><p class="muted">'+esc(body)+'</p></div></div>';}
+/* Owner-updates carousel: arrows, dots, swipe, Left/Right keys, optional autoplay (off by default; pauses on hover/focus; unavailable under reduced motion). */
+function initCarousel(items){var track=$('announcements'),vp=$('cViewport'),dots=$('cDots'),root=$('updates');if(!track)return;var n=items.length,i=0,timer=null,playing=false,paused=false;
+ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+ track.innerHTML=items.map(function(a,k){return '<article class="c-slide" role="group" aria-roledescription="slide" aria-label="'+(k+1)+' of '+n+': '+esc(a.title)+'"'+(k?' aria-hidden="true"':'')+'><p class="muted c-date">'+esc(fmtDate(a.date))+'</p><h3>'+esc(a.title)+'</h3><p>'+esc(a.body)+'</p>'+(a.link?'<p><a class="c-link" href="'+esc(a.link.href)+'" target="_blank" rel="noopener"'+(k?' tabindex="-1"':'')+'>'+esc(a.link.text)+' <span class="sr-only">(opens in a new tab)</span>↗</a></p>':'')+'</article>';}).join('');
+ dots.innerHTML=items.map(function(a,k){return '<button type="button" class="c-dot" data-dot="'+k+'" aria-label="Show update '+(k+1)+': '+esc(a.title)+'"></button>';}).join('');
+ function go(k,fromAuto){i=(k+n)%n;track.style.transform='translateX('+(-100*i)+'%)';
+  [].forEach.call(track.children,function(sl,j){sl.setAttribute('aria-hidden',j===i?'false':'true');sl.querySelectorAll('a').forEach(function(l){l.tabIndex=j===i?0:-1;});});
+  [].forEach.call(dots.children,function(d,j){if(j===i)d.setAttribute('aria-current','true');else d.removeAttribute('aria-current');});}
+ $('cPrev').addEventListener('click',function(){go(i-1);});$('cNext').addEventListener('click',function(){go(i+1);});
+ dots.addEventListener('click',function(e){var b=e.target.closest('[data-dot]');if(b)go(Number(b.getAttribute('data-dot')));});
+ root.addEventListener('keydown',function(e){if(e.target.tagName==='SELECT')return;if(e.key==='ArrowLeft'){e.preventDefault();go(i-1);}else if(e.key==='ArrowRight'){e.preventDefault();go(i+1);}});
+ var x0=null;vp.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;},{passive:true});
+ vp.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)>40)go(dx<0?i+1:i-1);});
+ function tick(){if(playing&&!paused)go(i+1,true);}
+ function setPlay(on){playing=on;var b=$('cPlay');b.setAttribute('aria-pressed',on?'true':'false');b.textContent=on?'Pause':'Play';b.setAttribute('aria-label',on?'Stop automatic rotation':'Start automatic rotation');
+  track.setAttribute('aria-live',on?'off':'polite');clearInterval(timer);if(on)timer=setInterval(tick,6000);}
+ if(reduce||n<2){$('cPlay').hidden=true;}else{$('cPlay').addEventListener('click',function(){setPlay(!playing);});}
+ root.addEventListener('mouseenter',function(){paused=true;});root.addEventListener('mouseleave',function(){paused=false;});
+ root.addEventListener('focusin',function(){paused=true;});root.addEventListener('focusout',function(e){if(!root.contains(e.relatedTarget))paused=false;});
+ if(n<2){$('cPrev').hidden=$('cNext').hidden=true;dots.hidden=true;}
+ go(0);}
+function fmtDate(iso){var m=['January','February','March','April','May','June','July','August','September','October','November','December'];var p=String(iso||'').split('-');return p.length===3?m[+p[1]-1]+' '+(+p[2])+', '+p[0]:iso;}
+var EYE='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
 if(page==='application'){
  var id=new URLSearchParams(location.search).get('id')||'a1'; var app=appById(id)||data.applications[0]; var cl=S.ensureChecklist(data,app); S.save(data);
- function render(){ var p=S.progress(data,app); var done=cl.filter(function(x){return x.done;}).length;
-  $('appDetail').innerHTML='<p>'+badge(app.status)+' <span class="badge">'+esc(app.type)+'</span></p><h2>'+esc(app.type)+' application</h2><p class="muted">Started '+esc(app.date)+' · Effective '+esc(S.effectiveDateOf(data,app)||'—')+'</p>'
-  +'<div class="bar" role="progressbar" aria-valuenow="'+p+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+p+'%"></i></div><p><strong>'+p+'% complete</strong> · Checklist status: <strong>'+(p===100?'Complete':'Incomplete')+'</strong> ('+done+' of '+cl.length+' done) · Application status badge above stays “'+esc(app.status)+'” as seeded.</p>'
-  +'<p class="muted">Requirements come from this application’s visa type; not official IRCC advice. Only the file name and Done state are saved in your browser; file contents are never read or stored.</p><ul class="check" style="list-style:none;padding:0">'
-  +cl.map(function(r,i){return '<li class="card req"><div class="req-main"><strong>'+(r.done?'✓ Done':'○ To do')+' — '+esc(r.label)+'</strong></div><div class="req-side"><label class="btn">Upload<input type="file" data-upload="'+i+'" style="position:absolute;opacity:0;width:1px;height:1px" aria-label="Upload file for '+esc(r.label)+'"></label>'+(r.filename?'<span class="muted req-file">File (name only): '+esc(r.filename)+'</span>':'')+'</div></li>';}).join('')+'</ul>';
-  document.querySelectorAll('[data-upload]').forEach(function(inp){inp.addEventListener('change',function(){if(inp.files&&inp.files[0]){var r=cl[Number(inp.getAttribute('data-upload'))];r.done=true;r.filename=inp.files[0].name;r.status='pending review';r.submittedAt=S.today();app.updatedAt=S.today();S.save(data);render();}});});
+ var FL={'received':'Received','pending review':'Pending review','approved':'Approved','rejected':'Rejected'};
+ function render(focusSel){ var p=S.progress(data,app); var done=cl.filter(function(x){return x.done;}).length;
+  /* Header image: AI-generated still (Higgsfield gpt_image_2_5), disclosed in alt text. */
+  $('appDetail').innerHTML='<div class="app-hero"><img src="../assets/client-app-header.webp?v=20261020a" srcset="../assets/client-app-header-640.webp?v=20261020a 640w, ../assets/client-app-header.webp?v=20261020a 1280w" sizes="(max-width: 900px) 100vw, 960px" width="1280" height="300" alt="AI-generated image: a plain navy folder, a pen and a clipboard on a wooden desk"></div>'
+  +'<p>'+badge(app.status)+' <span class="badge">'+esc(app.type)+'</span></p><h2>'+esc(app.type)+' application</h2><p class="muted">Started '+esc(app.date)+' · Effective '+esc(S.effectiveDateOf(data,app)||'—')+'</p>'
+  +'<div class="bar" role="progressbar" aria-valuenow="'+p+'" aria-valuemin="0" aria-valuemax="100" aria-label="Checklist progress"><i style="width:'+p+'%"></i></div><p><strong>'+p+'% complete</strong> · Checklist status: <strong>'+(p===100?'Complete':'Incomplete')+'</strong> ('+done+' of '+cl.length+' done)</p>'
+  +(app.status==='Review'?'<p class="review-note">All required documents are uploaded. Our office is reviewing your application.</p>':'')
+  +(cl.length?'<p class="muted">Requirements are based on your visa type. You can upload more than one file for each requirement.</p><ul class="check" style="list-style:none;padding:0">'
+  +cl.map(function(r,i){var d=S.docById(data,r.docId);var hasS=!!(d&&d.sample&&(d.sample.dataUrl||d.sample.name));var fs=r.files||[];
+   return '<li class="card req'+(r.done?' is-done':'')+'" id="req-'+esc(r.docId)+'"><div class="req-top"><div class="req-main"><strong>'+(r.done?'✓ Done':'○ To do')+' — '+esc(r.label)+'</strong>'+(hasS?'<button type="button" class="icon-btn sample-btn" data-sample="'+esc(r.docId)+'" aria-label="View sample document" title="View sample"><span class="tip" aria-hidden="true">View sample</span>'+EYE+'</button>':'')+'</div><div class="req-side"><label class="btn">'+(fs.length?'Upload more':'Upload')+'<input type="file" multiple data-upload="'+i+'" style="position:absolute;opacity:0;width:1px;height:1px" aria-label="Upload files for '+esc(r.label)+'"></label></div></div>'
+   +(fs.length?'<ul class="file-list" aria-label="Uploaded files for '+esc(r.label)+'">'+fs.map(function(f,k){return '<li><span class="file-name">'+esc(f.name)+'</span><span class="file-meta"><span class="doc-pill doc-'+f.status.replace(' ','-')+'">'+FL[f.status]+'</span><span class="muted">'+esc(f.at)+'</span><button type="button" class="icon-btn file-del" data-rm="'+i+':'+k+'" aria-label="Remove '+esc(f.name)+'" title="Remove">'+TRASH+'</button></span></li>';}).join('')+'</ul>':'')
+   +'</li>';}).join('')+'</ul>':emptyState('No requirements yet','Our office has not listed any documents for this application yet.'))
+  +'<p class="sr-only" role="status" aria-live="polite" id="appMsg"></p>';
+  document.querySelectorAll('[data-sample]').forEach(function(b){b.addEventListener('click',function(){openSample(S.docById(data,b.getAttribute('data-sample')),b);});});
+  document.querySelectorAll('[data-upload]').forEach(function(inp){inp.addEventListener('change',function(){if(!inp.files||!inp.files.length)return;var idx=Number(inp.getAttribute('data-upload'));var r=cl[idx];r.files=r.files||[];var t=S.today(),names=[];
+   [].forEach.call(inp.files,function(f){var nm=S.fileName(data,app,r,S.extOf(f.name),t);names.push(nm);r.files.push({name:nm,at:t,status:'pending review'});});
+   S.syncRow(r);S.syncReview(data,app);app.updatedAt=t;S.save(data);render('[data-upload="'+idx+'"]');$('appMsg').textContent='Uploaded '+names.join(', ')+'.';});});
+  document.querySelectorAll('[data-rm]').forEach(function(b){b.addEventListener('click',function(){var q=b.getAttribute('data-rm').split(':'),r=cl[+q[0]],f=r.files.splice(+q[1],1)[0];
+   S.syncRow(r);S.syncReview(data,app);app.updatedAt=S.today();S.save(data);var left=r.files.length;render(left?'[data-rm="'+q[0]+':'+Math.min(+q[1],left-1)+'"]':'[data-upload="'+q[0]+'"]');$('appMsg').textContent='Removed '+f.name+'.';});});
+  if(focusSel){var el=document.querySelector(focusSel);if(el)el.focus();}
  } render();
 }
 if(page==='tasks'){
- var auto=[]; data.applications.filter(function(a){return a.clientId==='c-demo';}).forEach(function(a){S.ensureChecklist(data,a).forEach(function(r){if(!r.done)auto.push({app:a,r:r});});}); S.save(data);
- $('autoTasks').innerHTML=auto.length?auto.map(function(x){return '<li class="card"><strong>Missing: '+esc(x.r.label)+'</strong><br><a href="application.html?id='+x.app.id+'">Open '+esc(x.app.type)+' application</a></li>';}).join(''):'<li class="card">All checklist items are done.</li>';
- function renderTasks(){ $('ownerTasks').innerHTML=data.tasks.map(function(t,i){return '<li class="card"><label style="display:flex;gap:10px;align-items:flex-start"><input type="checkbox" data-task="'+i+'" '+(t.done?'checked':'')+' style="width:auto;margin-top:5px"><span><strong>'+esc(t.title)+'</strong><br><span class="muted">Due '+esc(t.due)+'</span></span></label></li>';}).join('');
-  document.querySelectorAll('[data-task]').forEach(function(c){c.addEventListener('change',function(){data.tasks[Number(c.getAttribute('data-task'))].done=c.checked;S.save(data);});});}
+ function taskRows(){var today=S.today(),rows=[];
+  data.applications.filter(function(a){return a.clientId==='c-demo';}).forEach(function(a){S.ensureChecklist(data,a).forEach(function(r){if(!r.done)rows.push({kind:'doc',title:'Upload: '+r.label,app:a,due:a.due||'',done:false,href:'application.html?id='+a.id+'#req-'+r.docId});});});
+  data.tasks.forEach(function(t,i){rows.push({kind:'task',i:i,title:t.title,app:appById(t.appId),due:t.due||'',done:!!t.done});});
+  rows.forEach(function(x){x.status=x.done?'Done':(x.due&&x.due<today?'Overdue':'To do');});return rows;}
+ function renderTasks(focusI){var rows=taskRows();S.save(data);
+  if(!rows.length){$('tasksWrap').innerHTML=emptyState('You’re all caught up','There are no tasks or missing documents right now.');return;}
+  var cls={'Done':'done','Overdue':'overdue','To do':'todo'};
+  $('tasksWrap').innerHTML='<div class="s-card task-card"><table class="task-table"><caption class="sr-only">Your tasks</caption><thead><tr><th scope="col">Task</th><th scope="col">Application</th><th scope="col">Due</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead><tbody>'
+  +rows.map(function(x){return '<tr class="'+(x.done?'is-done':'')+'"><td data-label="Task"><strong>'+esc(x.title)+'</strong><span class="muted task-kind">'+(x.kind==='doc'?'Missing document':'From our office')+'</span></td>'
+   +'<td data-label="Application">'+(x.app?'<a href="application.html?id='+esc(x.app.id)+'">'+esc(x.app.type)+'</a>':'—')+'</td>'
+   +'<td data-label="Due">'+esc(x.due?fmtDate(x.due):'—')+'</td>'
+   +'<td data-label="Status"><span class="t-badge t-'+cls[x.status]+'">'+x.status+'</span></td>'
+   +'<td class="task-act">'+(x.kind==='doc'?'<a class="s-btn" href="'+esc(x.href)+'">Upload<span class="sr-only"> '+esc(x.title.replace('Upload: ',''))+'</span></a>':'<button type="button" class="s-btn'+(x.done?' outline':'')+'" data-task="'+x.i+'" aria-pressed="'+x.done+'">'+(x.done?'Mark as to do':'Mark done')+'<span class="sr-only">: '+esc(x.title)+'</span></button>')+'</td></tr>';}).join('')+'</tbody></table></div>';
+  document.querySelectorAll('[data-task]').forEach(function(b){b.addEventListener('click',function(){var k=Number(b.getAttribute('data-task'));var t=data.tasks[k];t.done=!t.done;S.save(data);renderTasks(k);$('taskMsg').textContent=(t.done?'Marked done: ':'Marked as to do: ')+t.title;});});
+  if(focusI!==undefined){var el=document.querySelector('[data-task="'+focusI+'"]');if(el)el.focus();}}
  renderTasks();
 }
 if(page==='profile'){
@@ -59,26 +113,162 @@ if(page==='profile'){
  wireReset();
 }
 
+/* ---- Shared: requirement sample files (owner attaches in Documents; client views from the checklist). Needs #sampleModal. ---- */
+function fmtSize(n){if(!n)return 'size unknown';return n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(2)+' MB';}
+function typeLabel(t,name){if(/^image\//.test(t))return t.replace('image/','').toUpperCase()+' image';if(t==='application/pdf')return 'PDF document';var ext=(String(name).split('.').pop()||'').toUpperCase();return t||(ext?ext+' file':'File');}
+function dataUrlToBlob(u){var p=u.split(','),m=(p[0].match(/data:([^;]+)/)||[])[1]||'application/octet-stream',b=atob(p[1]),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return new Blob([a],{type:m});}
+var sampleUrl=null;
+function openSample(doc,opener){var x=doc&&doc.sample;if(!x)return;if(sampleUrl){URL.revokeObjectURL(sampleUrl);sampleUrl=null;}
+ $('sampleTitle').textContent='Sample: '+doc.name.replace(/\s*\(sample\)/,'');
+ $('sampleMeta').innerHTML='<span>'+esc(x.name)+'</span><span>'+esc(typeLabel(x.type,x.name))+'</span><span>'+esc(fmtSize(x.size))+'</span>';
+ var body='',dl=$('sampleDownload');
+ if(x.dataUrl){sampleUrl=URL.createObjectURL(dataUrlToBlob(x.dataUrl));dl.href=sampleUrl;dl.download=x.name;dl.hidden=false;
+  if(/^image\//.test(x.type))body='<img src="'+sampleUrl+'" alt="Sample file for '+esc(doc.name)+'">';
+  else if(x.type==='application/pdf')body='<object data="'+sampleUrl+'" type="application/pdf" aria-label="PDF preview of '+esc(x.name)+'"><p class="muted">PDF preview isn’t available in this browser. Use Download to open it.</p></object>';
+  else body='<p class="muted">No preview for this file type. Use Download to open it.</p>';}
+ else{dl.hidden=true;body='<p class="muted">Only the file name was recorded for this sample, so there is nothing to preview or download.</p>';}
+ $('samplePreview').innerHTML=body;openModal('sampleModal',opener);}
+/* ---- Shared: application documents dialog (owner Clients + owner Dashboard). Needs #docsModal with the docs* ids. ---- */
+function appDetailsHtml(a,visa){var c=clientById(a.clientId);function row(k,v){return '<div><dt>'+k+'</dt><dd>'+v+'</dd></div>';}
+ return '<dl class="detail-grid">'+row('Client',esc(S.clientName(c)))+row('Visa type',esc(a.type))+row('Status',badge(a.status))
+  +row('Effective',esc(S.effectiveDateOf(data,a)||'—'))+row('Created',esc(a.createdAt||a.date||'—'))+row('Updated',esc(a.updatedAt||a.createdAt||'—'))
+  +(a.due?row('Due',esc(a.due)):'')+'</dl><p class="detail-notes"><span class="muted">Notes</span><br>'+esc((visa&&visa.notes)||'—')+'</p>';}
+ var DOC_LABEL={'received':'Received','pending review':'Pending review','approved':'Approved','rejected':'Rejected','missing':'Missing'};
+function docPill(st){return '<span class="doc-pill doc-'+st.replace(' ','-')+'">'+DOC_LABEL[st]+'</span>';}
+var docsApp=null,pendingFile=null,onDocsChanged=null;
+/* Owner documents modal (clients page + dashboard overdue dialog). One row per uploaded file: status <select> saves immediately; trash asks to confirm. */
+function renderDocs(appId){var a=appById(appId);if(!a)return;docsApp=appId;var visa=S.visaFor(data,a);var cl=S.ensureChecklist(data,a);S.save(data);
+ if($('docsDetails'))$('docsDetails').innerHTML=appDetailsHtml(a,visa);
+ var got=[],miss=cl.filter(function(r){return !r.done;});cl.forEach(function(r){(r.files||[]).forEach(function(f,k){got.push({r:r,f:f,k:k});});});
+ var vname=visa?visa.name+' (effective '+(visa.effective||'—')+')':a.type;
+ $('docsTitle').textContent=a.type+' — documents';
+ $('docsSub').innerHTML='Client: <strong>'+esc(S.clientName(clientById(a.clientId)))+'</strong> · Visa: <a href="visas.html">'+esc(vname)+'</a> · '+badge(a.status);
+ var nDone=cl.filter(function(r){return r.done;}).length;
+ $('docsSummary').textContent=cl.length?(nDone+' of '+cl.length+' required documents received · '+got.length+' file'+(got.length===1?'':'s')+' uploaded'):'This visa has no required documents listed.';
+ $('docsList').innerHTML=got.length?got.map(function(g){var f=g.f,key=esc(g.r.docId+':'+g.k);return '<li class="doc-row"><div class="doc-main"><strong>'+esc(g.r.label)+'</strong>'
+  +'<span class="muted">File: '+esc(f.name)+'</span></div>'
+  +'<div class="doc-side"><label class="sr-only" for="fs-'+key+'">Status for '+esc(f.name)+'</label><select class="doc-status-sel" id="fs-'+key+'" data-fstatus="'+key+'">'+S.FILE_STATUSES.map(function(st){return '<option value="'+st+'"'+(st===f.status?' selected':'')+'>'+DOC_LABEL[st]+'</option>';}).join('')+'</select>'
+  +'<span class="doc-date"><span class="muted">Submitted</span> '+esc(f.at||'—')+'</span>'
+  +'<button class="btn" type="button" data-dl="'+key+'">View / Download</button><button class="icon-btn danger-icon" type="button" data-fdel="'+key+'" aria-label="Delete '+esc(f.name)+'" title="Delete">'+TRASH+'</button></div></li>';}).join(''):'<li class="muted">No documents submitted yet.</li>';
+ $('docsMissing').innerHTML=miss.length?miss.map(function(r){return '<li>'+docPill('missing')+' '+esc(r.label)+'</li>';}).join(''):'<li class="muted">None — every required document has been received.</li>';
+ $('docsMissingWrap').hidden=!cl.length;
+ function find(key){var q=key.split(':');var r=cl.find(function(x){return x.docId===q[0];});return {r:r,f:r.files[+q[1]],k:+q[1]};}
+ document.querySelectorAll('#docsList [data-dl]').forEach(function(b){b.addEventListener('click',function(){var g=find(b.getAttribute('data-dl'));downloadPlaceholder(a,g.r,visa,g.f);});});
+ document.querySelectorAll('#docsList [data-fstatus]').forEach(function(sel){sel.addEventListener('change',function(){var g=find(sel.getAttribute('data-fstatus'));g.f.status=sel.value;S.syncRow(g.r);a.updatedAt=S.today();S.save(data);$('docsMsg').textContent='Saved: '+g.f.name+' is now '+DOC_LABEL[sel.value]+'.';if(onDocsChanged)onDocsChanged();});});
+ document.querySelectorAll('#docsList [data-fdel]').forEach(function(b){b.addEventListener('click',function(){var g=find(b.getAttribute('data-fdel'));pendingFile={appId:a.id,docId:g.r.docId,k:g.k};$('fileDeleteMsg').textContent='Delete “'+g.f.name+'” from '+g.r.label+'? This cannot be undone.';openModal('fileDeleteModal',b);});});}
+function openDocs(appId,opener){renderDocs(appId);openModal('docsModal',opener);}
+if($('confirmFileDelete'))$('confirmFileDelete').addEventListener('click',function(){if(!pendingFile)return;var a=appById(pendingFile.appId),cl=S.ensureChecklist(data,a),r=cl.find(function(x){return x.docId===pendingFile.docId;});
+ var f=r.files.splice(pendingFile.k,1)[0];S.syncRow(r);var was=a.status;S.syncReview(data,a);a.updatedAt=S.today();S.save(data);pendingFile=null;
+ closeModal('fileDeleteModal');renderDocs(a.id);if(onDocsChanged)onDocsChanged();
+ $('docsMsg').textContent='Deleted '+f.name+'.'+(was!==a.status?' Status changed from '+was+' to '+a.status+'.':'');var t=$('docsSummary');t.tabIndex=-1;t.focus();});
+/* Uploads store filenames only, so View/Download generates a small plain-text placeholder in the browser (Blob, .txt) named after the uploaded file. */
+function downloadPlaceholder(a,r,visa,f){var base=((f&&f.name)||('document-'+S.slug(r.label))).replace(/\.[A-Za-z0-9]+$/,'');
+ var txt=['MKC Immigration Solutions Inc — placeholder file','','This is a generated placeholder. Only the file name was stored; no file contents are kept in this browser.','',
+  'Document: '+r.label,'Stored file name: '+((f&&f.name)||'—'),'Application: '+a.type+' ('+a.id+')','Visa: '+(visa?visa.name+' (effective '+(visa.effective||'—')+')':'—'),
+  'Client: '+S.clientName(clientById(a.clientId)),'Status: '+DOC_LABEL[(f&&f.status)||'received'],'Submitted: '+((f&&f.at)||'—'),'Generated: '+new Date().toISOString()].join('\n');
+ var url=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));var l=document.createElement('a');l.href=url;l.download=base+'.txt';document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(url);},1500);
+ $('docsMsg').textContent='Downloaded '+base+'.txt (placeholder).';}
+
 /* ================= OWNER: dashboard ================= */
 if(page==='owner-dashboard'){
- function render(){
-  var active=data.applications.filter(function(a){return a.status==='Active';}).length;
-  var awaiting=data.applications.filter(function(a){return S.progress(data,a)<100;}).length;
-  $('kpis').innerHTML=[['Revenue','$12,400'],['Total clients',data.clients.length],['Active cases',active],['Awaiting documents',awaiting]].map(function(k){return '<article class="card"><p class="muted">'+k[0]+'</p><h2>'+esc(k[1])+'</h2></article>';}).join('');
-  var counts={}; S.STATUSES.forEach(function(s){counts[s]=0;}); data.applications.forEach(function(a){counts[a.status]=(counts[a.status]||0)+1;});
-  var max=Math.max.apply(null,Object.values(counts).concat([1]));
-  $('chart').innerHTML=Object.keys(counts).map(function(k){var w=Math.round(counts[k]/max*100);return '<div style="margin:10px 0"><span>'+esc(k)+' ('+counts[k]+')</span><div class="bar" role="img" aria-label="'+esc(k)+': '+counts[k]+' cases"><i style="width:'+w+'%"></i></div></div>';}).join('')
-   +'<table><caption class="muted">Cases by status (data table for the chart above)</caption><tr><th>Status</th><th>Cases</th></tr>'+Object.keys(counts).map(function(k){return '<tr><td>'+esc(k)+'</td><td>'+counts[k]+'</td></tr>';}).join('')+'</table>';
-  var today=S.today(); var overdue=data.applications.filter(function(a){return a.due<today&&a.status!=='Approved'&&a.status!=='Cancelled';});
-  $('overdue').innerHTML=overdue.length?overdue.map(function(a){return '<li>'+esc(S.clientName(clientById(a.clientId)))+' — '+esc(a.type)+' · legacy due '+esc(a.due)+' · '+esc(a.status)+'</li>';}).join(''):'<li>No overdue cases.</li>';
-  $('recent').innerHTML=data.applications.slice().reverse().slice(0,10).map(function(a,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(S.clientName(clientById(a.clientId)))+'</td><td>'+esc(a.type)+'</td><td>'+badge(a.status)+'</td><td>'+esc(S.effectiveDateOf(data,a)||'—')+'</td></tr>';}).join('');
+ var NAVY='#0a1f3d',GOLD='#c6a15b',PAL=['#0a1f3d','#c6a15b','#3b5b8c','#e3c98f','#6b85ad','#8a6a2a','#a1a1aa'];
+ var MUTED='#71717a',GRID='#e4e4e7',RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+ var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+ function monLabel(k){return MON[+k.slice(5)-1]+' '+k.slice(2,4);}
+ function money(n){return '$'+Math.round(n).toLocaleString('en-CA');}
+ function awaitingApps(){return data.applications.filter(function(a){return S.progress(data,a)<100;});}
+ function byType(list){var o={};list.forEach(function(a){o[a.type]=(o[a.type]||0)+1;});return Object.keys(o).sort(function(x,y){return o[y]-o[x];}).map(function(k){return [k,o[k]];});}
+ function table(cap,head,rows){return '<table class="sr-only"><caption>'+esc(cap)+'</caption><thead><tr>'+head.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+'</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+esc(c)+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';}
+ var keys=S.monthKeys(12),M=data.metrics||{revenue:{},clients:{}};
+ var rev=keys.map(function(k){return M.revenue[k]||0;});
+ var cli=keys.map(function(k,i){return i===keys.length-1?data.clients.length:(M.clients[k]||0);});
+ var curRev=rev[rev.length-1],total12=rev.reduce(function(x,y){return x+y;},0);
+ var actives=data.applications.filter(function(a){return a.status==='Active';});
+ var awaiting=awaitingApps();
+ /* KPI cards (revenue card = current month of the revenue chart) */
+ $('kpis').innerHTML=[['Revenue · '+monLabel(keys[11]),money(curRev),'12-month total '+money(total12)],['Total clients',data.clients.length,'Month-end total, live'],['Active cases',actives.length,'Status: Active'],['Awaiting documents',awaiting.length,'Required documents still missing']]
+  .map(function(k){return '<article class="s-card kpi"><p class="kpi-label">'+esc(k[0])+'</p><p class="kpi-value">'+esc(k[1])+'</p><p class="kpi-sub">'+esc(k[2])+'</p></article>';}).join('');
+ /* ---- Charts ---- */
+ function extTooltip(ctx){var el=$('chartTip');var t=ctx.tooltip;if(!t||t.opacity===0){el.hidden=true;return;}
+  var title=(t.title||[]).join(' ');var rows=t.dataPoints.map(function(p){var col=p.dataset.backgroundColor;col=Array.isArray(col)?col[p.dataIndex]:(p.dataset.borderColor&&p.chart.config.type==='line'?p.dataset.borderColor:col);if(typeof col!=='string')col=NAVY;
+   var v=p.chart.canvas.id==='revChart'?money(p.raw):p.raw;return '<div class="tip-row"><span class="tip-dot" style="background:'+col+'"></span><span class="tip-name">'+esc(p.dataset.label||p.label)+'</span><span class="tip-val">'+esc(v)+'</span></div>';}).join('');
+  el.innerHTML=(title?'<div class="tip-title">'+esc(title)+'</div>':'')+rows;el.hidden=false;
+  var r=ctx.chart.canvas.getBoundingClientRect(),w=el.offsetWidth,x=r.left+window.scrollX+t.caretX+12,y=r.top+window.scrollY+t.caretY-el.offsetHeight/2;
+  if(x+w>window.scrollX+document.documentElement.clientWidth-8)x=r.left+window.scrollX+t.caretX-w-12;el.style.left=Math.max(8,x)+'px';el.style.top=y+'px';}
+ function baseOpts(extra){var o={responsive:true,maintainAspectRatio:false,animation:RM?false:{duration:500},
+   plugins:{legend:{display:false},tooltip:{enabled:false,external:extTooltip,mode:'index',intersect:false}},interaction:{mode:'index',intersect:false},
+   scales:{x:{grid:{display:false},border:{display:false},ticks:{color:MUTED,font:{size:11}}},
+    y:{beginAtZero:true,grid:{color:GRID,drawTicks:false},border:{display:false,dash:[4,4]},ticks:{color:MUTED,font:{size:11},padding:8,maxTicksLimit:5}}}};
+  return Object.assign(o,extra||{});}
+ function dashGrid(o){o.scales.y.grid.tickBorderDash=[4,4];o.scales.y.border.dash=[4,4];return o;}
+ if(window.Chart){
+  Chart.defaults.font.family='Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif';Chart.defaults.color=MUTED;
+  var dashPlugin={id:'dashY',beforeDraw:function(c){if(c.config.type==='doughnut')return;}};
+  /* line: revenue */
+  var rc=$('revChart'),g=rc.getContext('2d').createLinearGradient(0,0,0,260);g.addColorStop(0,'rgba(198,161,91,.35)');g.addColorStop(1,'rgba(198,161,91,0)');
+  var o1=dashGrid(baseOpts());o1.scales.y.ticks.callback=function(v){return '$'+(v/1000)+'k';};
+  new Chart(rc,{type:'line',data:{labels:keys.map(monLabel),datasets:[{label:'Revenue',data:rev,borderColor:GOLD,backgroundColor:g,fill:true,tension:.4,borderWidth:2,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:GOLD,pointHoverBorderColor:'#fff',pointHoverBorderWidth:2}]},options:o1});
+  /* bar: clients */
+  new Chart($('cliChart'),{type:'bar',data:{labels:keys.map(monLabel),datasets:[{label:'Clients',data:cli,backgroundColor:NAVY,hoverBackgroundColor:'#123665',borderRadius:6,borderSkipped:false,maxBarThickness:28}]},options:dashGrid(baseOpts())});
+  /* doughnut: active by type, centre total */
+  var at=byType(actives);
+  var centre={id:'centreTotal',afterDraw:function(c){var m=c.getDatasetMeta(0).data[0];if(!m)return;var x=m.x,y=m.y,ctx=c.ctx;ctx.save();ctx.textAlign='center';ctx.fillStyle='#09090b';ctx.font='700 26px Inter,system-ui,sans-serif';ctx.fillText(String(actives.length),x,y+4);ctx.fillStyle=MUTED;ctx.font='12px Inter,system-ui,sans-serif';ctx.fillText('Active',x,y+22);ctx.restore();}};
+  new Chart($('actChart'),{type:'doughnut',data:{labels:at.map(function(r){return r[0];}),datasets:[{label:'Active cases',data:at.map(function(r){return r[1];}),backgroundColor:PAL.slice(0,at.length),borderWidth:0,spacing:3,borderRadius:6,hoverOffset:4}]},
+   options:{responsive:true,maintainAspectRatio:false,cutout:'68%',animation:RM?false:{duration:500},plugins:{legend:{display:false},tooltip:{enabled:false,external:extTooltip}}},plugins:[centre]});
+  $('actLegend').innerHTML=at.map(function(r,i){return '<li><span class="dot" style="background:'+PAL[i]+'"></span>'+esc(r[0])+'<b>'+r[1]+'</b></li>';}).join('');
+  /* horizontal bar: awaiting documents by visa type */
+  var aw=byType(awaiting);var o4=dashGrid(baseOpts({indexAxis:'y'}));o4.scales={x:{beginAtZero:true,grid:{color:GRID,drawTicks:false,tickBorderDash:[4,4]},border:{display:false,dash:[4,4]},ticks:{color:MUTED,font:{size:11},precision:0,maxTicksLimit:5}},y:{grid:{display:false},border:{display:false},ticks:{color:MUTED,font:{size:11}}}};
+  new Chart($('awChart'),{type:'bar',data:{labels:aw.map(function(r){return r[0];}),datasets:[{label:'Awaiting documents',data:aw.map(function(r){return r[1];}),backgroundColor:GOLD,hoverBackgroundColor:'#b48d43',borderRadius:6,borderSkipped:false,maxBarThickness:22}]},options:o4});
+  window.addEventListener('scroll',function(){$('chartTip').hidden=true;},{passive:true});
  }
- $('appClient').innerHTML=data.clients.map(function(c){return '<option value="'+c.id+'">'+esc(S.clientName(c))+'</option>';}).join('');
- $('appType').innerHTML=visaOptions();
- populateEffective($('appType').value,$('appEffective'));
- $('appType').addEventListener('change',function(){populateEffective($('appType').value,$('appEffective'));});
- $('addApp').addEventListener('submit',function(e){e.preventDefault();var v=selectedVisa($('appEffective'));if(!v){$('addMsg').textContent='Cannot save: a visa with an effective date is needed first. Add an effective date for this visa type on the Visas page.';return;}var a={id:'a-'+Date.now(),clientId:$('appClient').value,type:$('appType').value,visaId:v.id,effectiveDate:v.effective,status:$('appStatus').value,date:S.today(),createdAt:S.today(),updatedAt:S.today(),progress:0};data.applications.push(a);S.save(data);render();$('addMsg').textContent='Added application for '+S.clientName(clientById(a.clientId))+'.';});
- render();
+ /* aria summaries + hidden data tables */
+ function lab(id,txt){var c=$(id);c.setAttribute('role','img');c.setAttribute('aria-label',txt);}
+ var mx=rev.indexOf(Math.max.apply(null,rev));
+ lab('revChart','Line chart of revenue per month for the last 12 months, '+monLabel(keys[0])+' to '+monLabel(keys[11])+'. Highest '+monLabel(keys[mx])+' at '+money(rev[mx])+'; this month '+money(curRev)+'.');
+ lab('cliChart','Bar chart of total clients at each month end for the last 12 months, rising from '+cli[0]+' to '+cli[11]+'.');
+ lab('actChart','Doughnut chart of '+actives.length+' active cases by visa type: '+byType(actives).map(function(r){return r[0]+' '+r[1];}).join(', ')+'.');
+ lab('awChart','Horizontal bar chart of '+awaiting.length+' cases awaiting documents by visa type: '+byType(awaiting).map(function(r){return r[0]+' '+r[1];}).join(', ')+'.');
+ $('revTable').innerHTML=table('Revenue per month',['Month','Revenue'],keys.map(function(k,i){return [monLabel(k),money(rev[i])];}));
+ $('cliTable').innerHTML=table('Total clients per month',['Month','Clients'],keys.map(function(k,i){return [monLabel(k),cli[i]];}));
+ $('actTable').innerHTML=table('Active cases by visa type',['Visa type','Cases'],byType(actives));
+ $('awTable').innerHTML=table('Cases awaiting documents by visa type',['Visa type','Cases'],byType(awaiting));
+ /* stacked bar: cases by status per month (segment colour == status pill dot colour, see owner-shad.css) */
+ var STC={New:'#a1a1aa',Submitted:'#6b85ad',Review:'#0f766e',Active:'#0a1f3d',Approved:'#c6a15b',Denied:'#dc2626',Cancelled:'#d4d4d8'},EXTRA=['#3b5b8c','#8a6a2a','#71717a'];
+ var sts=S.STATUSES.slice();data.applications.forEach(function(a){if(a.status&&sts.indexOf(a.status)<0)sts.push(a.status);});
+ var live={};data.applications.forEach(function(a){live[a.status]=(live[a.status]||0)+1;});
+ var stH=keys.map(function(k,i){return i===keys.length-1?live:((M.status||{})[k]||{});});
+ function stCol(st,i){return STC[st]||EXTRA[i%EXTRA.length];}
+ if(window.Chart){
+  var o5=dashGrid(baseOpts());o5.scales.x.stacked=true;o5.scales.y.stacked=true;o5.scales.y.ticks.precision=0;
+  o5.plugins.tooltip.external=function(ctx){extTooltip(ctx);var t=ctx.tooltip;if(!t||t.opacity===0)return;var tot=t.dataPoints.reduce(function(x,p){return x+p.raw;},0);
+   $('chartTip').insertAdjacentHTML('beforeend','<div class="tip-row tip-total"><span class="tip-name">Total</span><span class="tip-val">'+tot+'</span></div>');};
+  o5.plugins.tooltip.itemSort=function(a,b){return b.datasetIndex-a.datasetIndex;};
+  new Chart($('stChart'),{type:'bar',data:{labels:keys.map(monLabel),datasets:sts.map(function(st,i){return {label:st,data:stH.map(function(o){return o[st]||0;}),backgroundColor:stCol(st,i),borderRadius:i===sts.length-1?{topLeft:6,topRight:6}:0,borderSkipped:false,maxBarThickness:30,
+   borderWidth:{top:1},borderColor:'#fff'};})},options:o5});
+ }
+ $('stLegend').innerHTML=sts.map(function(st,i){return '<li><span class="dot" style="background:'+stCol(st,i)+'"></span>'+esc(st)+'</li>';}).join('');
+ var tots=stH.map(function(o){return sts.reduce(function(x,st){return x+(o[st]||0);},0);});
+ lab('stChart','Stacked bar chart of cases by status for each of the last 12 months. This month: '+sts.map(function(st){return st+' '+(live[st]||0);}).join(', ')+'; total '+tots[11]+'.');
+ $('stTable').innerHTML=table('Cases by status per month',['Month'].concat(sts,['Total']),keys.map(function(k,i){return [monLabel(k)].concat(sts.map(function(st){return stH[i][st]||0;}),[tots[i]]);}));
+ /* ---- Overdue ---- */
+ var today=S.today();var overdue=data.applications.filter(function(a){return a.due&&a.due<today&&a.status!=='Approved'&&a.status!=='Cancelled';})
+  .map(function(a){return {a:a,days:Math.round((Date.parse(today)-Date.parse(a.due))/864e5)};}).sort(function(x,y){return y.days-x.days;});
+ $('overdueCount').textContent=overdue.length?overdue.length+' case'+(overdue.length===1?'':'s'):'';
+ $('overdue').innerHTML=overdue.length?overdue.map(function(o){var a=o.a;return '<tr class="row-link" tabindex="0" data-app="'+esc(a.id)+'" aria-label="'+esc(S.clientName(clientById(a.clientId))+', '+a.type+', '+o.days+' days overdue. Open details')+'">'
+   +'<td data-label="Client"><span class="cell-strong">'+esc(S.clientName(clientById(a.clientId)))+'</span></td><td data-label="Visa type">'+esc(a.type)+'</td><td data-label="Status">'+badge(a.status)+'</td><td data-label="Due date">'+esc(a.due)+'</td>'
+   +'<td data-label="Days overdue" class="num"><span class="s-badge destructive">'+o.days+' days</span></td></tr>';}).join(''):'<tr><td colspan="5" class="muted">No overdue cases.</td></tr>';
+ document.querySelectorAll('#overdue [data-app]').forEach(function(tr){function go(){openDocs(tr.getAttribute('data-app'),tr);}tr.addEventListener('click',go);tr.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});});
+ /* ---- Recent applicants (10 per page) ---- */
+ var recent=data.applications.slice().reverse(),PER=10,pg=1,pages=Math.max(1,Math.ceil(recent.length/PER));
+ function renderRecent(){var start=(pg-1)*PER;
+  $('recent').innerHTML=recent.slice(start,start+PER).map(function(a,i){return '<tr><td data-label="No." class="muted">'+(start+i+1)+'</td><td data-label="Applicant"><span class="cell-strong">'+esc(S.clientName(clientById(a.clientId)))+'</span></td><td data-label="Application type">'+esc(a.type)+'</td><td data-label="Status">'+badge(a.status)+'</td><td data-label="Effective date">'+esc(S.effectiveDateOf(data,a)||'—')+'</td></tr>';}).join('');
+  var pgr=$('recentPager');if(recent.length<=PER){pgr.hidden=true;return;}pgr.hidden=false;
+  var h='<button type="button" class="s-btn ghost" data-pg="prev" '+(pg===1?'disabled':'')+' aria-label="Previous page">‹ Previous</button>';
+  for(var i=1;i<=pages;i++)h+='<button type="button" class="s-btn '+(i===pg?'outline':'ghost')+' pg-num" data-pg="'+i+'" '+(i===pg?'aria-current="page"':'')+' aria-label="Page '+i+'">'+i+'</button>';
+  h+='<button type="button" class="s-btn ghost" data-pg="next" '+(pg===pages?'disabled':'')+' aria-label="Next page">Next ›</button>';
+  pgr.innerHTML=h;$('recentInfo').textContent='Showing '+(start+1)+'–'+Math.min(start+PER,recent.length)+' of '+recent.length;
+  pgr.querySelectorAll('[data-pg]').forEach(function(b){b.addEventListener('click',function(){var v=b.getAttribute('data-pg');pg=v==='prev'?pg-1:v==='next'?pg+1:+v;renderRecent();var f=pgr.querySelector('[aria-current]');if(f)f.focus();});});}
+ renderRecent();
 }
 
 /* ================= OWNER: clients ================= */
@@ -93,6 +283,7 @@ if(page==='clients'){
   $('pageInfo').textContent='Page '+cur+' of '+pages+' · '+list.length+' clients';
   $('prevPage').disabled=cur<=1; $('nextPage').disabled=cur>=pages;
   document.querySelectorAll('[data-edit-client]').forEach(function(b){b.addEventListener('click',function(){openEdit(b.getAttribute('data-edit-client'),b);});});}
+ onDocsChanged=function(){render();if(editingId)renderEditApps();};
  function docCount(a){return S.ensureChecklist(data,a).filter(function(r){return r.done;}).length;}
  function renderEditApps(){var apps=data.applications.filter(function(a){return a.clientId===editingId;});
   $('editApps').innerHTML=apps.length?apps.map(function(a){var n=docCount(a),eff=S.effectiveDateOf(data,a)||'—';
@@ -103,36 +294,13 @@ if(page==='clients'){
   S.save(data);
   document.querySelectorAll('#editApps [data-app]').forEach(function(el){function go(){openDocs(el.getAttribute('data-app'),el);}
    el.addEventListener('click',go);el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});});}
- var DOC_LABEL={'received':'Received','pending review':'Pending review','approved':'Approved','missing':'Missing'};
- function docPill(st){return '<span class="doc-pill doc-'+st.replace(' ','-')+'">'+DOC_LABEL[st]+'</span>';}
- function openDocs(appId,opener){var a=appById(appId);if(!a)return;var visa=S.visaFor(data,a);var cl=S.ensureChecklist(data,a);S.save(data);
-  var got=cl.filter(function(r){return r.done;}),miss=cl.filter(function(r){return !r.done;});
-  var vname=visa?visa.name+' (effective '+(visa.effective||'—')+')':a.type;
-  $('docsTitle').textContent=a.type+' — documents';
-  $('docsSub').innerHTML='Client: <strong>'+esc(S.clientName(clientById(a.clientId)))+'</strong> · Visa: <a href="visas.html">'+esc(vname)+'</a> · '+badge(a.status);
-  $('docsSummary').textContent=cl.length?(got.length+' of '+cl.length+' required documents received'):'This visa has no required documents listed.';
-  $('docsList').innerHTML=got.length?got.map(function(r){var st=S.docStatus(r);return '<li class="doc-row"><div class="doc-main"><strong>'+esc(r.label.replace(/\s*\(sample\)/,''))+'</strong>'
-   +'<span class="muted">Required for <a href="visas.html">'+esc(visa?visa.name:a.type)+'</a> · File: '+esc(r.filename||'—')+'</span></div>'
-   +'<div class="doc-side">'+docPill(st)+'<span class="doc-date"><span class="muted">Submitted</span> '+esc(r.submittedAt||'—')+'</span>'
-   +'<button class="btn" type="button" data-dl="'+esc(r.docId)+'">View / Download</button></div></li>';}).join(''):'<li class="muted">No documents submitted yet.</li>';
-  $('docsMissing').innerHTML=miss.length?miss.map(function(r){return '<li>'+docPill('missing')+' '+esc(r.label.replace(/\s*\(sample\)/,''))+'</li>';}).join(''):'<li class="muted">None — every required document has been received.</li>';
-  $('docsMissingWrap').hidden=!cl.length;
-  document.querySelectorAll('#docsList [data-dl]').forEach(function(b){b.addEventListener('click',function(){var r=cl.find(function(x){return x.docId===b.getAttribute('data-dl');});downloadPlaceholder(a,r,visa);});});
-  openModal('docsModal',opener);}
- /* Uploads store filenames only, so View/Download generates a small plain-text placeholder in the browser (Blob, .txt) named after the document. */
- function downloadPlaceholder(a,r,visa){var base=(r.filename||('sample-'+S.slug(r.label))).replace(/\.[A-Za-z0-9]+$/,'');
-  var txt=['MKC Immigration Solutions Inc — placeholder file','','This is a generated placeholder. Only the file name was stored; no file contents are kept in this browser.','',
-   'Document: '+r.label,'Stored file name: '+(r.filename||'—'),'Application: '+a.type+' ('+a.id+')','Visa: '+(visa?visa.name+' (effective '+(visa.effective||'—')+')':'—'),
-   'Client: '+S.clientName(clientById(a.clientId)),'Status: '+DOC_LABEL[S.docStatus(r)],'Submitted: '+(r.submittedAt||'—'),'Generated: '+new Date().toISOString()].join('\n');
-  var url=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));var l=document.createElement('a');l.href=url;l.download=base+'.txt';document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(url);},1500);
-  $('docsMsg').textContent='Downloaded '+base+'.txt (placeholder).';}
  function openEdit(cid,btn){editingId=cid;var c=clientById(cid);$('editFirst').value=c.first||'';$('editMiddle').value=c.middle||'—';$('editLast').value=c.last||'';$('editEmail').value=c.email;$('editPhone').value=c.phone;$('editClientName').textContent=S.clientName(c);renderEditApps();openModal('editClientModal');if(btn)lastFocus=btn;}
  populateEffective($('newVisaType').value,$('newEffective'));
  $('newVisaType').addEventListener('change',function(){populateEffective($('newVisaType').value,$('newEffective'));});
  $('addClientBtn').addEventListener('click',function(){openModal('addClientModal');});
  $('addClientForm').addEventListener('submit',function(e){e.preventDefault();
   var first=$('newFirst').value.trim(),last=$('newLast').value.trim(),email=$('newEmail').value.trim(),type=$('newVisaType').value;
-  var err=''; if(!first)err='First name is required.'; else if(!last)err='Last name is required.'; else if(!email||email.indexOf('@')<1)err='A valid email is required (e.g. name@demo.ca).'; else if(!type)err='Visa application type is required.';
+  var err=''; if(!first)err='First name is required.'; else if(!last)err='Last name is required.'; else if(!email||email.indexOf('@')<1)err='A valid email is required (e.g. name@example.com).'; else if(!type)err='Visa application type is required.';
   $('addClientError').textContent=err; if(err)return;
   var v=selectedVisa($('newEffective'));if(!v){$('addClientError').textContent='Cannot save: a visa with an effective date is needed first. Add an effective date for this visa type on the Visas page.';return;}
   var c={id:'c-'+Date.now(),first:first,middle:$('newMiddle').value.trim(),last:last,email:email,phone:$('newPhone').value.trim(),address:'',language:'',dob:'',createdAt:S.today(),updatedAt:S.today()};
@@ -151,15 +319,28 @@ if(page==='clients'){
 if(page==='documents'){
  var pendingDelete=null;
  function render(){var list=data.documents;
-  $('docRows').innerHTML=list.map(function(d){return '<tr><td>'+esc(d.name)+'</td><td>'+esc(d.version)+'</td><td>'+esc((data.visas||[]).filter(function(v){return v.docIds.indexOf(d.id)>-1;}).map(function(v){return v.name;}).join(', ')||'—')+'</td><td>'+esc(d.status)+'</td><td>'+esc(d.createdAt)+'</td><td>'+esc(d.updatedAt)+'</td><td>'+d.uploaded+(d.sampleFileName?'<br><span class="muted">File: '+esc(d.sampleFileName)+'</span>':'')+'</td><td style="white-space:nowrap"><button type="button" class="icon-btn" data-edit="'+d.id+'" aria-label="Edit document '+esc(d.name)+'" title="Edit document">'+PENCIL+'</button> <button type="button" class="icon-btn danger" data-del="'+d.id+'" aria-label="Delete document '+esc(d.name)+'" title="Delete document">'+TRASH+'</button></td></tr>';}).join('');
-  document.querySelectorAll('[data-edit]').forEach(function(b){b.addEventListener('click',function(){var d=S.docById(data,b.getAttribute('data-edit'));$('docId').value=d.id;$('docName').value=d.name;$('docVersion').value=d.version;$('docStatus').value=d.status;$('docFileName').textContent=d.sampleFileName?('File (name only): '+d.sampleFileName):'';openModal('docModal');lastFocus=b;});});
+  $('docRows').innerHTML=list.map(function(d){return '<tr><td>'+esc(d.name)+'</td><td>'+esc(d.version)+'</td><td>'+esc((data.visas||[]).filter(function(v){return v.docIds.indexOf(d.id)>-1;}).map(function(v){return v.name;}).join(', ')||'—')+'</td><td>'+esc(d.status)+'</td><td>'+esc(d.createdAt)+'</td><td>'+esc(d.updatedAt)+'</td><td>'+d.uploaded+'</td><td class="sample-cell">'+(d.sample?'<span class="sample-name">'+esc(d.sample.name)+'</span><span class="muted">'+esc(typeLabel(d.sample.type,d.sample.name))+' · '+esc(fmtSize(d.sample.size))+'</span>':'<span class="muted">No sample</span>')+'<span class="sample-actions">'+(d.sample?'<button type="button" class="btn ghost sm" data-sview="'+d.id+'" aria-label="View sample for '+esc(d.name)+'">View</button><button type="button" class="btn ghost sm" data-sattach="'+d.id+'" aria-label="Replace sample for '+esc(d.name)+'">Replace</button><button type="button" class="btn ghost sm danger" data-sremove="'+d.id+'" aria-label="Remove sample for '+esc(d.name)+'">Remove</button>':'<button type="button" class="btn ghost sm" data-sattach="'+d.id+'" aria-label="Attach sample for '+esc(d.name)+'">Attach sample</button>')+'</span></td><td style="white-space:nowrap"><button type="button" class="icon-btn" data-edit="'+d.id+'" aria-label="Edit document '+esc(d.name)+'" title="Edit document">'+PENCIL+'</button> <button type="button" class="icon-btn danger" data-del="'+d.id+'" aria-label="Delete document '+esc(d.name)+'" title="Delete document">'+TRASH+'</button></td></tr>';}).join('');
+  document.querySelectorAll('[data-edit]').forEach(function(b){b.addEventListener('click',function(){var d=S.docById(data,b.getAttribute('data-edit'));$('docId').value=d.id;$('docName').value=d.name;$('docVersion').value=d.version;$('docStatus').value=d.status;openModal('docModal');lastFocus=b;});});
+  document.querySelectorAll('[data-sattach]').forEach(function(b){b.addEventListener('click',function(){sampleTarget=b.getAttribute('data-sattach');sampleOpener=b;$('sampleFile').value='';$('sampleFile').click();});});
+  document.querySelectorAll('[data-sview]').forEach(function(b){b.addEventListener('click',function(){openSample(S.docById(data,b.getAttribute('data-sview')),b);});});
+  document.querySelectorAll('[data-sremove]').forEach(function(b){b.addEventListener('click',function(){pendingSampleRemove=b.getAttribute('data-sremove');var d=S.docById(data,pendingSampleRemove);$('sampleRemoveMsg').textContent='Remove the sample “'+d.sample.name+'” from “'+d.name+'”? Clients will no longer see a sample for this requirement.';openModal('sampleRemoveModal',b);});});
   document.querySelectorAll('[data-del]').forEach(function(b){b.addEventListener('click',function(){pendingDelete=b.getAttribute('data-del');var d=S.docById(data,pendingDelete);$('deleteMsg').textContent='Delete “'+d.name+'”? It will also be removed from any visa required-document lists that use it.';openModal('confirmModal');lastFocus=b;});});}
+ var sampleTarget=null,sampleOpener=null,pendingSampleRemove=null;
+ function sampleMsg(t,bad){var m=$('sampleStatus');m.textContent=t;m.className=bad?'sample-status err':'sample-status';}
+ $('sampleFile').addEventListener('change',function(){var f=$('sampleFile').files[0],d=S.docById(data,sampleTarget);if(!f||!d)return;
+  if(f.size>S.SAMPLE_MAX){sampleMsg('“'+f.name+'” is '+fmtSize(f.size)+'. Samples can be at most '+fmtSize(S.SAMPLE_MAX)+' — please choose a smaller file.',true);if(sampleOpener)sampleOpener.focus();return;}
+  var rd=new FileReader();rd.onerror=function(){sampleMsg('Could not read “'+f.name+'”.',true);};
+  rd.onload=function(){var prev=d.sample,had=!!prev;d.sample={name:f.name,type:f.type||'',size:f.size,dataUrl:String(rd.result),addedAt:S.today()};d.updatedAt=S.today();
+   if(!S.trySave(data)){d.sample=prev;sampleMsg('Browser storage is full, so “'+f.name+'” could not be saved. Remove another sample or use a smaller file.',true);if(sampleOpener)sampleOpener.focus();return;}
+   sampleMsg((had?'Replaced sample for ':'Attached sample to ')+'“'+d.name+'”: '+f.name+' ('+fmtSize(f.size)+').');var id=d.id;render();var nb=document.querySelector('[data-sattach="'+id+'"]');if(nb)nb.focus();};
+  rd.readAsDataURL(f);});
+ $('confirmSampleRemove').addEventListener('click',function(){var d=S.docById(data,pendingSampleRemove);if(!d)return;var nm=d.sample&&d.sample.name;delete d.sample;d.updatedAt=S.today();S.save(data);var id=d.id;pendingSampleRemove=null;
+  $('sampleRemoveModal').hidden=true;modalStack=modalStack.filter(function(x){return x.id!=='sampleRemoveModal';});render();sampleMsg('Removed sample '+nm+' from “'+d.name+'”.');var nb=document.querySelector('[data-sattach="'+id+'"]');if(nb)nb.focus();});
  $('confirmDelete').addEventListener('click',function(){if(!pendingDelete)return;data.documents=data.documents.filter(function(d){return d.id!==pendingDelete;});data.visas.forEach(function(v){v.docIds=v.docIds.filter(function(id){return id!==pendingDelete;});v.updatedAt=S.today();});pendingDelete=null;S.save(data);closeModal('confirmModal');render();});
- $('addDocBtn').addEventListener('click',function(){$('docForm').reset();$('docId').value='';$('docFileName').textContent='';openModal('docModal');});
- $('docFile').addEventListener('change',function(){var d=S.docById(data,$('docId').value);var name=$('docFile').files[0]?$('docFile').files[0].name:'';if(name){$('docFileName').textContent='File (name only): '+name;if(d){d.sampleFileName=name;d.updatedAt=S.today();S.save(data);render();}else{$('docFileName').dataset.pending=name;}}});
+ $('addDocBtn').addEventListener('click',function(){$('docForm').reset();$('docId').value='';openModal('docModal');});
  $('docForm').addEventListener('submit',function(e){e.preventDefault();var today=S.today();var id=$('docId').value;
-  if(id){var d=S.docById(data,id);d.name=$('docName').value;delete d.type;delete d.applicationType;d.version=$('docVersion').value;d.status=$('docStatus').value;d.updatedAt=today;if($('docFileName').dataset.pending){d.sampleFileName=$('docFileName').dataset.pending;delete $('docFileName').dataset.pending;}$('docMsg').textContent='Updated document.';}
-  else{data.documents.push({id:'d-'+Date.now(),name:$('docName').value,version:$('docVersion').value||'v1.0',status:$('docStatus').value,createdAt:today,updatedAt:today,uploaded:0,sampleFileName:$('docFileName').dataset.pending||''});delete $('docFileName').dataset.pending;$('docMsg').textContent='Added document.';}
+  if(id){var d=S.docById(data,id);d.name=$('docName').value;delete d.type;delete d.applicationType;d.version=$('docVersion').value;d.status=$('docStatus').value;d.updatedAt=today;$('docMsg').textContent='Updated document.';}
+  else{data.documents.push({id:'d-'+Date.now(),name:$('docName').value,version:$('docVersion').value||'v1.0',status:$('docStatus').value,createdAt:today,updatedAt:today,uploaded:0});$('docMsg').textContent='Added document.';}
   S.save(data);closeModal('docModal');render();});
  render();
 }

@@ -63,5 +63,57 @@ Every image is now used on exactly one page (a video's poster counts as its clip
 - Removed the now-unused `ca-lake-canoe-*` and `ca-rockies-jet-*` stills.
 
 ## Cache busting
-Every local CSS/JS reference carries `?v=<version>` (currently `20261019d`). Bump it on every publish, e.g.:
+Every local CSS/JS reference carries `?v=<version>` (currently `20261020a`). Bump it on every publish, e.g.:
 `NEW=20261020a; grep -rlE '\.(css|js)\?v=' site --include='*.html' | xargs sed -i -E "s/\.(css|js)\?v=[A-Za-z0-9]+/.\1?v=$NEW/g"`
+
+## Owner dashboard (shadcn-style, Chart.js) — Oct 2026
+- **Design system:** `site/assets/owner-shad.css` is a static-CSS copy of shadcn/ui tokens and components: HSL CSS variables, `--radius: 0.5rem`, zinc neutrals, 1px borders, muted-foreground text. It covers Card, Table, Badge (default/secondary/outline/destructive), Pagination, Dialog with a close X, and Button (default/outline/ghost) with focus rings. MKC navy is primary and gold is accent.
+- **Scope:** it applies only under `body.shad`, which only `owner/dashboard.html` has. The other owner and client pages still use `dashboard.css`. Static HTML, no React.
+- **Charts:** Chart.js 4.5.1 UMD, vendored at `assets/vendor/chart.umd.min.js` (MIT licence alongside), taken from the npm registry tarball. No CDN at runtime.
+  - **Recharts-like styling:** dashed horizontal gridlines only, no axis borders, muted ticks, rounded bars, a smooth line with a gold gradient fill, an HTML tooltip card with colour dots, legend dots, and a doughnut with spaced, rounded segments and a centre total.
+  - **Accessibility:** animation is off under reduced motion. Each canvas has `role="img"`, an aria-label summary and a visually hidden data table.
+- **Data:** everything comes from `mkc_demo_v2`.
+  - `data.metrics` (`v:1`) stores monthly revenue and month-end client totals. They're seeded once from a fixed hash seed and are stable across reloads; new months are filled deterministically and stored months are never overwritten.
+  - The current month's client total is live (`clients.length`). The Revenue card shows the current month of the revenue chart, plus the 12-month total.
+  - The doughnut shows applications with status Active, by visa type.
+  - "Awaiting documents" counts applications with required documents still missing, by visa type, the same set as the KPI card.
+- **Documents dialog:** the code is shared between Clients (Edit Client cards) and the Dashboard (overdue rows, which add the application details panel).
+- **Cases by status** (stacked bar, full-width row of the chart grid): one bar per month for the rolling 12 months, with one segment per status (New, Active, Submitted, Approved, Denied, Cancelled, plus any other status found in the data).
+  - **Data:** past months come from `data.metrics.status`, seeded once with a fixed hash and stored. The current month counts live applications, so it adds up to the 26 applications.
+  - **Colours:** each segment uses the same colour as the dot on its status badge.
+  - **Tooltip and accessibility:** the tooltip lists each status's count and the month total. Like the other charts, it has an aria summary and a hidden data table.
+
+## Requirement sample files
+
+- Owner UI: **owner/documents.html** (document requirements library). The "Sample file" column has Attach sample / View / Replace / Remove; Remove asks for confirmation first. A visa's checklist is built from its requirements, so a sample shows up on every client checklist that includes that requirement.
+- Client UI: **client/application.html**. A requirement shows an eye button ("View sample document") only when it has a sample. The dialog previews images inline and PDFs in an `<object>`; any other type shows its name, type and size with a Download button. The dialog has an overlay, a × close button and a focus trap, and Esc returns focus to the button that opened it.
+- Storage: files are kept as data URLs inside `mkc_demo_v2` (`documents[].sample = {name,type,size,dataUrl}`). The limit is **1.5 MB per file** (raw size). If the browser's storage is full, the change is rolled back and a clear error is shown.
+- Migration `samplesV: 1`: a legacy `sampleFileName` becomes a name-only sample (no preview), and placeholder samples from `assets/sample-seeds.js` are seeded on d1 (PNG), d2 (PDF) and d8 (PNG). All seeds are generated, blank files marked "SAMPLE — NOT A REAL DOCUMENT".
+
+## Standard document file names
+
+Uploaded files are renamed `MKC-{clientCode}-{visaCode}-{docCode}-{YYYYMMDD}.{ext}` (uppercase codes, the date is the upload date, and the extension comes from the uploaded file), e.g. `MKC-C001-WP-PASSPORT-20261019.pdf`. The same name appears in the client checklist, the owner documents modal (including from the dashboard overdue dialog) and Download. Migration `namesV: 1` adds `code` to clients, visas and documents and renames the stored checklist filenames.
+
+- Clients: `c-demo` → C001, `cN` → C(N+1) zero-padded (C002…C025).
+- Visas: WP Work Permit, VV Visitor Visa, TV Tourist Visa, PR Permanent Residence, SP Student Visa, CIT Citizenship, GEN General Consulting.
+- Documents: d1 PASSPORT, d2 FORMS, d3 PHOTOS, d4 LETTERS, d5 FEES, d6 STUDY, d7 ITINERARY, d8 EMPLOYMENT, d9 FUNDS, d10 INVITATION, d11 LANGUAGE, d12 RESIDENCE, d13 ACCEPTANCE, d14 NOTES. New records without a code get one derived from their name.
+
+On the client checklist, the sample eye button sits inline after the requirement name (tooltip "View sample") and only appears when the owner has attached a sample.
+
+## Client portal update (20261020a)
+
+- **Owner updates carousel** (`client/dashboard.html`): prev/next arrows, dots, swipe on touch, Left/Right keys on the focused viewport, `aria-roledescription="carousel"`/`"slide"` and a polite live region. Autoplay is off by default (Play button, 6 s), pauses on hover or focus, and is hidden under `prefers-reduced-motion`. Notices: Office hours (Mon–Fri 8:00 a.m.–5:00 p.m.), Holiday closure (Fri Dec 25 and Mon Dec 28, 2026 (Boxing Day observed), and Fri Jan 1, 2027), and IRCC processing times. The processing-times notice gives no figures and links to IRCC's official processing-times page.
+- **Reset:** the visible "Reset to starting data" buttons are gone. Add `?reset=1` to any dashboard URL to clear `mkc_demo_v2` and reseed; the parameter is then removed from the URL.
+- **Multiple files per requirement** (`filesV: 1`): `row.files = [{name, at, status}]`, and `row.seq` is the last `-NN` used (numbers are never reused after a delete). Names follow `MKC-{client}-{visa}-{doc}-{YYYYMMDD}-NN.{ext}`. Existing single files were migrated to `-01`. Clients can remove their own uploads.
+- **Review status:** when every required document has at least one upload, the application moves to **Review** (from New/Active/Submitted; the earlier status is kept in `reviewFrom`). If a file is removed and the set is no longer complete, it goes back to that earlier status. Review has a teal pill (#0f766e) and appears in the owner charts (including Cases by status), the legend and the Clients status filter.
+- **Owner documents modal** (Clients page and the dashboard overdue dialog): one row per uploaded file, with a status dropdown (Received / Pending review / Approved / Rejected) that saves immediately, and a trash button with a confirm dialog. After a delete, the counts, the missing list and the Review status update.
+- **Tasks page:** a shadcn-style table (task, application, due date, status badge, action) that becomes stacked cards below 720px.
+- **Copy cleanup** (`copyV: 1`): "(sample)" was removed from document and requirement names. Clients now have fictional names (C001 Amara Okafor; C002–C025: Priya Sharma, Mateo Fernández, Wei Chen, Fatima Al-Sayed, Liam O’Connor, Aiko Tanaka, Kwame Mensah, Sofia Rossi, Arjun Patel, Nadia Haddad, Diego Morales, Mei Lin Wong, Oluwaseun Adeyemi, Elena Petrova, Hassan Rahimi, Gabriela Silva, Tomasz Nowak, Ananya Iyer, Jamal Williams, Yuki Nakamura, Carmen Ortiz, Daniel Kim, Leila Moradi, Samuel Osei). Visa notes and task titles no longer say "Sample". The seeded sample email addresses are left as they are (standing rule).
+- **Images** (AI-generated with Higgsfield `gpt_image_2_5`, 0.25 credits each, 0.75 total; balance 951.61 → 950.86; no people, text or logos; disclosed in the alt text and in HTML/JS comments):
+  - `client-welcome(-640).webp`: dashboard welcome banner (job 1af5bcfb)
+  - `client-app-header(-640).webp`: application header (job e97b73c6)
+  - `client-empty(-240).webp`: empty states (job 150cfd0a)
+
+## Client emails (20261020a)
+
+Migration `emailsV: 1` rewrites seeded client emails to `firstname.lastname@example.com` (lowercase ASCII, accents stripped, apostrophes and spaces dropped), e.g. amara.okafor@example.com, mateo.fernandez@example.com, liam.oconnor@example.com, meilin.wong@example.com. It only changes emails that still match the old seeded pattern (`client@demo.ca` for C001, `sampleNN@demo.ca` for the others), so emails edited by the user are kept. It runs once, after the name migration. The demo logins (client@demo.ca / client123, owner@demo.ca / owner123) are hard-coded in `login.html` and do not depend on C001's stored email, so they still work. The add-client placeholder is now name@example.com.
