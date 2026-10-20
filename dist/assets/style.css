@@ -62,9 +62,11 @@ footer{background:#071426;color:#c8d7ec;padding:52px 0 30px}footer a{color:#f3d9
 @media(max-width:1020px){nav ul{gap:18px}}
 @media(max-width:900px){.menu-toggle{display:block}.nav{flex-wrap:wrap;padding:10px 0}header nav{order:3;width:100%}#mainNav{display:none;flex-direction:column;gap:4px;padding:10px 0}#mainNav.open{display:flex}#mainNav a{display:block;padding:10px 0}.nav-actions .btn{padding:10px 14px;font-size:.88rem}}
 
-.morris-photo{margin:0 0 24px;background:#fff;padding:14px;border:1px solid var(--line);border-top:3px solid var(--gold);border-radius:22px;box-shadow:0 14px 34px rgba(10,31,61,.10);width:min(348px,100%)}.morris-photo img{width:100%;height:auto;aspect-ratio:4/5;object-fit:contain;border-radius:12px;display:block;background:#fff}
+.morris-photo{margin:0 0 24px;width:min(360px,100%)}.morris-photo img{width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;border-radius:6px;display:block;box-shadow:0 10px 26px rgba(10,31,61,.12)}
 .credentials-card{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
-.cicc-logo{width:260px;max-width:100%;height:auto;background:#fff}
+.cicc-lockup{display:flex;align-items:center;gap:10px;background:#fff;padding:12px 14px;border-radius:12px;max-width:100%}.cicc-mark{width:80px;height:80px;flex:none;display:block}.cicc-side{display:flex;flex-direction:column;line-height:1}.cicc-l{text-align:right;align-items:flex-end}.cicc-word{font-family:Arial,Helvetica,sans-serif;font-weight:900;font-size:2.1rem;color:#e0262f;letter-spacing:.01em}.cicc-sub{font-family:Arial,Helvetica,sans-serif;font-size:.72rem;line-height:1.25;color:#4a4a4a;margin-top:5px;white-space:nowrap}@media(max-width:480px){.cicc-lockup{gap:6px;padding:10px 4px}.cicc-mark{width:60px;height:60px}.cicc-word{font-size:1.55rem}.cicc-sub{font-size:.6rem}}
 .cred-number{font-family:Georgia,serif;font-size:1.5rem;color:var(--navy);margin:4px 0}
 .cred-note{color:#8a0e24;font-weight:800;margin:0}
 @media(max-width:560px){.credentials-card{gap:16px}}
+
+.svc-grid{display:flex;flex-wrap:wrap;justify-content:center}.svc-grid>.card{flex:0 1 calc((100% - 40px)/3)}@media(max-width:960px){.svc-grid>.card{flex-basis:calc((100% - 20px)/2)}}@media(max-width:640px){.svc-grid>.card{flex-basis:100%}}
