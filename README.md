@@ -55,3 +55,9 @@ All AI-generated with Higgsfield (John approved, hard cap 20; spent 19.00): a gp
 - Winter: still 92e4a2fa → clip 0ea2a056, a snowy village with warm lights and tiny distant skaters on a frozen pond (no faces)
 - Spring: still 40c4b963 → clip a49bc5f8, cherry blossoms in a green city park with a distant skyline
 - Summer: still 8bbaec3a → clip f92cc6c2, a lake beach at sunset with a dock and empty chairs
+
+## Unique imagery pass (Oct 2026)
+Every image is now used on exactly one page (a video's poster counts as its clip). New gpt_image_2_5 stills, 0.25 each, 1.75 total:
+- Services strip: 179f9ec1 Atlantic cove (Visit), f0e4ae09 stone campus quad (Study), 160b1eef bright office (Work), edee4e5e family home porch (Settle) → `svc-*-{560,960}.webp`
+- About break 35c4b225 riverside park; Reviews break 6ba12656 cafe table; FAQ break 1b5f8a9c prairie barn → `ca-*-{640,1280}.webp`
+- Removed the now-unused `ca-lake-canoe-*` and `ca-rockies-jet-*` stills.

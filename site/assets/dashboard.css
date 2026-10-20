@@ -50,3 +50,5 @@ label{font-weight:700;display:block;margin:12px 0 5px}input,select,textarea{widt
 .readonly-field{background:#eef1f6;color:#5b6b82;cursor:not-allowed;border-style:dashed}
 
 .policy-links{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:0 0 14px;font-size:.8rem}.policy-links a{color:#c9d6e8;text-decoration:none}.policy-links a:hover{text-decoration:underline}.policy-links .sep{color:#6f86a6}.mini-footer{background:transparent;margin-top:40px;padding-top:16px;border-top:1px solid #dfe5ee;font-size:.8rem;color:#5b6b80}.mini-footer .policy-links{margin:0 0 6px}.mini-footer .policy-links a{color:#0a1f3d}.mini-footer .policy-links .sep{color:#9aa7b8}.mini-disc{margin:0;overflow-wrap:anywhere}
+/* Login: the empty error <p> (margin reset by .card p) was the only thing between the password field and the button, so they touched. Give the button its own spacing and collapse the empty error. */
+#loginForm .login-error{color:#8a0e24;font-weight:700;margin:12px 0 0}#loginForm .login-error:empty{display:none}#loginForm .login-submit{display:flex;width:100%;margin-top:20px}
