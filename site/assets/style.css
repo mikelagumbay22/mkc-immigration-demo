@@ -69,5 +69,8 @@ footer{background:#071426;color:#c8d7ec;padding:52px 0 30px}footer a{color:#f3d9
 .cred-note{color:#8a0e24;font-weight:800;margin:0}
 @media(max-width:560px){.credentials-card{gap:16px}}
 
-.svc-grid{display:flex;flex-wrap:wrap;justify-content:center}.svc-grid>.card{flex:0 1 calc((100% - 40px)/3)}@media(max-width:960px){.svc-grid>.card{flex-basis:calc((100% - 20px)/2)}}@media(max-width:640px){.svc-grid>.card{flex-basis:100%}}
 .google-reviews-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 0;font-size:1.05rem;color:var(--navy)}.gstars{display:inline-flex;gap:2px;height:22px}.gstars svg{width:22px;height:22px;display:block}
+@media(min-width:768px){.credentials-card{flex-wrap:nowrap;justify-content:flex-start;align-items:center}.credentials-card>.cicc-lockup{flex:0 1 auto;min-width:0}.credentials-card>div:last-child{flex:0 0 auto}}@media(max-width:1100px) and (min-width:768px){.cicc-sub{white-space:normal}}@media(max-width:767px){.credentials-card{flex-direction:column;align-items:flex-start}.cicc-lockup{width:100%;justify-content:center}.cicc-sub{white-space:normal}.cicc-side{min-width:0;flex:1 1 0}}
+.cicc-sub .ln{display:block}@media(max-width:767px){.cicc-sub .ln{display:inline}}
+@media(max-width:767px){.cicc-sub{text-wrap:balance}.cicc-lockup{gap:5px;padding:8px 0}.cicc-mark{width:54px;height:54px}}
+.service-cards{--gap:20px;display:flex;flex-wrap:wrap;justify-content:center;gap:var(--gap)}.service-cards>.card{flex:0 1 calc((100% - 2*var(--gap))/3);min-width:0}@media(max-width:1024px){.service-cards>.card{flex-basis:calc((100% - var(--gap))/2)}}@media(max-width:560px){.service-cards>.card{flex-basis:100%}}
