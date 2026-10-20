@@ -8,13 +8,14 @@ function badge(st){return '<span class="badge '+esc(st)+'">'+esc(st)+'</span>';}
 var PENCIL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>';
 var TRASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m1 0-1 14H8L7 6"/></svg>';
 /* --- modal helpers: open/close, Escape, focus return, Tab trap-lite --- */
-var lastFocus=null;
-function openModal(id){lastFocus=document.activeElement;var m=$(id);m.hidden=false;var f=m.querySelector('input,select,textarea,button');if(f)f.focus();}
-function closeModal(id){$(id).hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus();}
+var lastFocus=null,modalStack=[];/* stack: [{id,ret}] so a modal can open over another; Esc/close returns focus to its opener */
+function topModal(){var t=modalStack[modalStack.length-1];return t?$(t.id):document.querySelector('.modal-back:not([hidden])');}
+function openModal(id,ret){var m=$(id);modalStack=modalStack.filter(function(x){return x.id!==id;});modalStack.push({id:id,ret:ret||document.activeElement});lastFocus=ret||document.activeElement;m.hidden=false;var f=m.querySelector('[data-autofocus]')||m.querySelector('input,select,textarea,button');if(f)f.focus();}
+function closeModal(id){$(id).hidden=true;var i=-1;modalStack.forEach(function(x,k){if(x.id===id)i=k;});var ret=i>-1?modalStack[i].ret:lastFocus;if(i>-1)modalStack.splice(i,1);if(ret&&ret.focus&&document.contains(ret))ret.focus();}
 document.querySelectorAll('[data-close]').forEach(function(b){b.addEventListener('click',function(){closeModal(b.getAttribute('data-close'));});});
 document.addEventListener('keydown',function(e){
- if(e.key==='Escape'){document.querySelectorAll('.modal-back:not([hidden])').forEach(function(m){m.hidden=true;});if(lastFocus&&lastFocus.focus)lastFocus.focus();}
- if(e.key==='Tab'){var open=document.querySelector('.modal-back:not([hidden])');if(!open)return;var items=open.querySelectorAll('button,input,select,textarea,a[href]');if(!items.length)return;var first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}
+ if(e.key==='Escape'){var tm=topModal();if(tm){e.preventDefault();closeModal(tm.id);}}
+ if(e.key==='Tab'){var open=topModal();if(!open)return;var items=[].filter.call(open.querySelectorAll('button,input,select,textarea,a[href],[tabindex="0"]'),function(el){return !el.disabled&&el.offsetParent!==null;});if(!items.length)return;var first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}
 });
 document.querySelectorAll('[data-signout]').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();sessionStorage.removeItem('mkc_demo_role');location.href='../index.html';});});
 document.querySelectorAll('[data-menu]').forEach(function(b){b.addEventListener('click',function(){var s=document.querySelector('.side');b.setAttribute('aria-expanded',s.classList.toggle('open'));});});
@@ -30,24 +31,24 @@ function selectedVisa(sel){return data.visas.find(function(v){return v.id===sel.
 /* ================= CLIENT ================= */
 if(page==='client-dashboard'){
  var mine=data.applications.filter(function(a){return a.clientId==='c-demo';});
- $('announcements').innerHTML=data.announcements.map(function(a){return '<article class="card"><p class="muted">'+esc(a.date)+' · Sample announcement</p><h3>'+esc(a.title)+'</h3><p>'+esc(a.body)+'</p></article>';}).join('');
+ $('announcements').innerHTML=data.announcements.map(function(a){return '<article class="card"><p class="muted">'+esc(a.date)+'</p><h3>'+esc(a.title)+'</h3><p>'+esc(a.body)+'</p></article>';}).join('');
  $('appCards').innerHTML=mine.map(function(a){var p=S.progress(data,a);return '<article class="card"><p>'+badge(a.status)+' <span class="badge">'+esc(a.type)+'</span></p><h3><a href="application.html?id='+a.id+'">'+esc(a.type)+' application</a></h3><p class="muted">Started '+esc(a.date)+' · Effective '+esc(S.effectiveDateOf(data,a)||'—')+'</p><div class="bar" role="progressbar" aria-valuenow="'+p+'" aria-valuemin="0" aria-valuemax="100" aria-label="Checklist progress"><i style="width:'+p+'%"></i></div><p>'+p+'% complete</p><a class="btn navy" href="application.html?id='+a.id+'">Open application</a></article>';}).join('');
  wireReset();
 }
 if(page==='application'){
  var id=new URLSearchParams(location.search).get('id')||'a1'; var app=appById(id)||data.applications[0]; var cl=S.ensureChecklist(data,app); S.save(data);
  function render(){ var p=S.progress(data,app); var done=cl.filter(function(x){return x.done;}).length;
-  $('appDetail').innerHTML='<p>'+badge(app.status)+' <span class="badge">'+esc(app.type)+'</span></p><h2>'+esc(app.type)+' application</h2><p class="muted">Sample application · Started '+esc(app.date)+' · Effective '+esc(S.effectiveDateOf(data,app)||'—')+'</p>'
+  $('appDetail').innerHTML='<p>'+badge(app.status)+' <span class="badge">'+esc(app.type)+'</span></p><h2>'+esc(app.type)+' application</h2><p class="muted">Started '+esc(app.date)+' · Effective '+esc(S.effectiveDateOf(data,app)||'—')+'</p>'
   +'<div class="bar" role="progressbar" aria-valuenow="'+p+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+p+'%"></i></div><p><strong>'+p+'% complete</strong> · Checklist status: <strong>'+(p===100?'Complete':'Incomplete')+'</strong> ('+done+' of '+cl.length+' done) · Application status badge above stays “'+esc(app.status)+'” as seeded.</p>'
-  +'<p class="muted">Sample checklist only — requirements come from this application’s visa type in the demo Visas list; not official IRCC advice. Upload is a demo: only the file name and Done state are saved in your browser; file contents are never read or stored.</p><ul class="check" style="list-style:none;padding:0">'
-  +cl.map(function(r,i){return '<li class="card req"><div class="req-main"><strong>'+(r.done?'✓ Done':'○ To do')+' — '+esc(r.label)+'</strong></div><div class="req-side"><label class="btn">Upload<input type="file" data-upload="'+i+'" style="position:absolute;opacity:0;width:1px;height:1px" aria-label="Upload demo file for '+esc(r.label)+'"></label>'+(r.filename?'<span class="muted req-file">File (name only): '+esc(r.filename)+'</span>':'')+'</div></li>';}).join('')+'</ul>';
-  document.querySelectorAll('[data-upload]').forEach(function(inp){inp.addEventListener('change',function(){if(inp.files&&inp.files[0]){var r=cl[Number(inp.getAttribute('data-upload'))];r.done=true;r.filename=inp.files[0].name;app.updatedAt=S.today();S.save(data);render();}});});
+  +'<p class="muted">Requirements come from this application’s visa type; not official IRCC advice. Only the file name and Done state are saved in your browser; file contents are never read or stored.</p><ul class="check" style="list-style:none;padding:0">'
+  +cl.map(function(r,i){return '<li class="card req"><div class="req-main"><strong>'+(r.done?'✓ Done':'○ To do')+' — '+esc(r.label)+'</strong></div><div class="req-side"><label class="btn">Upload<input type="file" data-upload="'+i+'" style="position:absolute;opacity:0;width:1px;height:1px" aria-label="Upload file for '+esc(r.label)+'"></label>'+(r.filename?'<span class="muted req-file">File (name only): '+esc(r.filename)+'</span>':'')+'</div></li>';}).join('')+'</ul>';
+  document.querySelectorAll('[data-upload]').forEach(function(inp){inp.addEventListener('change',function(){if(inp.files&&inp.files[0]){var r=cl[Number(inp.getAttribute('data-upload'))];r.done=true;r.filename=inp.files[0].name;r.status='pending review';r.submittedAt=S.today();app.updatedAt=S.today();S.save(data);render();}});});
  } render();
 }
 if(page==='tasks'){
  var auto=[]; data.applications.filter(function(a){return a.clientId==='c-demo';}).forEach(function(a){S.ensureChecklist(data,a).forEach(function(r){if(!r.done)auto.push({app:a,r:r});});}); S.save(data);
- $('autoTasks').innerHTML=auto.length?auto.map(function(x){return '<li class="card"><strong>Missing: '+esc(x.r.label)+'</strong><br><a href="application.html?id='+x.app.id+'">Open '+esc(x.app.type)+' application</a></li>';}).join(''):'<li class="card">All sample checklist items are done.</li>';
- function renderTasks(){ $('ownerTasks').innerHTML=data.tasks.map(function(t,i){return '<li class="card"><label style="display:flex;gap:10px;align-items:flex-start"><input type="checkbox" data-task="'+i+'" '+(t.done?'checked':'')+' style="width:auto;margin-top:5px"><span><strong>'+esc(t.title)+'</strong><br><span class="muted">Due '+esc(t.due)+' · Sample task</span></span></label></li>';}).join('');
+ $('autoTasks').innerHTML=auto.length?auto.map(function(x){return '<li class="card"><strong>Missing: '+esc(x.r.label)+'</strong><br><a href="application.html?id='+x.app.id+'">Open '+esc(x.app.type)+' application</a></li>';}).join(''):'<li class="card">All checklist items are done.</li>';
+ function renderTasks(){ $('ownerTasks').innerHTML=data.tasks.map(function(t,i){return '<li class="card"><label style="display:flex;gap:10px;align-items:flex-start"><input type="checkbox" data-task="'+i+'" '+(t.done?'checked':'')+' style="width:auto;margin-top:5px"><span><strong>'+esc(t.title)+'</strong><br><span class="muted">Due '+esc(t.due)+'</span></span></label></li>';}).join('');
   document.querySelectorAll('[data-task]').forEach(function(c){c.addEventListener('change',function(){data.tasks[Number(c.getAttribute('data-task'))].done=c.checked;S.save(data);});});}
  renderTasks();
 }
@@ -63,20 +64,20 @@ if(page==='owner-dashboard'){
  function render(){
   var active=data.applications.filter(function(a){return a.status==='Active';}).length;
   var awaiting=data.applications.filter(function(a){return S.progress(data,a)<100;}).length;
-  $('kpis').innerHTML=[['Revenue','$12,400 — sample demo figure'],['Total clients',data.clients.length],['Active cases',active],['Awaiting documents',awaiting]].map(function(k){return '<article class="card"><p class="muted">'+k[0]+'</p><h2>'+esc(k[1])+'</h2><p><span class="demo-pill">Demo — sample data only</span></p></article>';}).join('');
+  $('kpis').innerHTML=[['Revenue','$12,400'],['Total clients',data.clients.length],['Active cases',active],['Awaiting documents',awaiting]].map(function(k){return '<article class="card"><p class="muted">'+k[0]+'</p><h2>'+esc(k[1])+'</h2></article>';}).join('');
   var counts={}; S.STATUSES.forEach(function(s){counts[s]=0;}); data.applications.forEach(function(a){counts[a.status]=(counts[a.status]||0)+1;});
   var max=Math.max.apply(null,Object.values(counts).concat([1]));
   $('chart').innerHTML=Object.keys(counts).map(function(k){var w=Math.round(counts[k]/max*100);return '<div style="margin:10px 0"><span>'+esc(k)+' ('+counts[k]+')</span><div class="bar" role="img" aria-label="'+esc(k)+': '+counts[k]+' cases"><i style="width:'+w+'%"></i></div></div>';}).join('')
    +'<table><caption class="muted">Cases by status (data table for the chart above)</caption><tr><th>Status</th><th>Cases</th></tr>'+Object.keys(counts).map(function(k){return '<tr><td>'+esc(k)+'</td><td>'+counts[k]+'</td></tr>';}).join('')+'</table>';
   var today=S.today(); var overdue=data.applications.filter(function(a){return a.due<today&&a.status!=='Approved'&&a.status!=='Cancelled';});
-  $('overdue').innerHTML=overdue.length?overdue.map(function(a){return '<li>'+esc(S.clientName(clientById(a.clientId)))+' — '+esc(a.type)+' · legacy due '+esc(a.due)+' · '+esc(a.status)+'</li>';}).join(''):'<li>No overdue sample cases.</li>';
+  $('overdue').innerHTML=overdue.length?overdue.map(function(a){return '<li>'+esc(S.clientName(clientById(a.clientId)))+' — '+esc(a.type)+' · legacy due '+esc(a.due)+' · '+esc(a.status)+'</li>';}).join(''):'<li>No overdue cases.</li>';
   $('recent').innerHTML=data.applications.slice().reverse().slice(0,10).map(function(a,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(S.clientName(clientById(a.clientId)))+'</td><td>'+esc(a.type)+'</td><td>'+badge(a.status)+'</td><td>'+esc(S.effectiveDateOf(data,a)||'—')+'</td></tr>';}).join('');
  }
  $('appClient').innerHTML=data.clients.map(function(c){return '<option value="'+c.id+'">'+esc(S.clientName(c))+'</option>';}).join('');
  $('appType').innerHTML=visaOptions();
  populateEffective($('appType').value,$('appEffective'));
  $('appType').addEventListener('change',function(){populateEffective($('appType').value,$('appEffective'));});
- $('addApp').addEventListener('submit',function(e){e.preventDefault();var v=selectedVisa($('appEffective'));if(!v){$('addMsg').textContent='Cannot save: a visa with an effective date is needed first. Add an effective date for this visa type on the Visas page.';return;}var a={id:'a-'+Date.now(),clientId:$('appClient').value,type:$('appType').value,visaId:v.id,effectiveDate:v.effective,status:$('appStatus').value,date:S.today(),createdAt:S.today(),updatedAt:S.today(),progress:0};data.applications.push(a);S.save(data);render();$('addMsg').textContent='Added sample application for '+S.clientName(clientById(a.clientId))+'.';});
+ $('addApp').addEventListener('submit',function(e){e.preventDefault();var v=selectedVisa($('appEffective'));if(!v){$('addMsg').textContent='Cannot save: a visa with an effective date is needed first. Add an effective date for this visa type on the Visas page.';return;}var a={id:'a-'+Date.now(),clientId:$('appClient').value,type:$('appType').value,visaId:v.id,effectiveDate:v.effective,status:$('appStatus').value,date:S.today(),createdAt:S.today(),updatedAt:S.today(),progress:0};data.applications.push(a);S.save(data);render();$('addMsg').textContent='Added application for '+S.clientName(clientById(a.clientId))+'.';});
  render();
 }
 
@@ -89,18 +90,49 @@ if(page==='clients'){
    return (!q||name.indexOf(q)>-1||apps.some(function(a){return a.type.toLowerCase().indexOf(q)>-1;})) && (!st||apps.some(function(a){return a.status===st;})) && (!ty||apps.some(function(a){return a.type===ty;}));});}
  function render(){var list=filtered();var pages=Math.max(1,Math.ceil(list.length/per));if(cur>pages)cur=pages;var slice=list.slice((cur-1)*per,cur*per);
   $('clientRows').innerHTML=slice.map(function(c){var apps=data.applications.filter(function(a){return a.clientId===c.id;});var latest=apps[apps.length-1];return '<tr><td>'+esc(S.clientName(c))+'</td><td>'+esc(c.email)+'</td><td>'+esc(c.phone)+'</td><td>'+apps.length+'</td><td>'+(latest?esc(latest.type)+' · '+esc(latest.status):'—')+'</td><td><button type="button" class="icon-btn" data-edit-client="'+c.id+'" aria-label="Edit client '+esc(S.clientName(c))+'" title="Edit client">'+PENCIL+'</button></td></tr>';}).join('');
-  $('pageInfo').textContent='Page '+cur+' of '+pages+' · '+list.length+' sample clients';
+  $('pageInfo').textContent='Page '+cur+' of '+pages+' · '+list.length+' clients';
   $('prevPage').disabled=cur<=1; $('nextPage').disabled=cur>=pages;
   document.querySelectorAll('[data-edit-client]').forEach(function(b){b.addEventListener('click',function(){openEdit(b.getAttribute('data-edit-client'),b);});});}
+ function docCount(a){return S.ensureChecklist(data,a).filter(function(r){return r.done;}).length;}
  function renderEditApps(){var apps=data.applications.filter(function(a){return a.clientId===editingId;});
-  $('editApps').innerHTML=apps.length?apps.map(function(a){return '<li class="card"><strong>'+esc(a.type)+'</strong> · '+badge(a.status)+'<br><span class="muted">Created '+esc(a.createdAt||a.date)+' · Updated '+esc(a.updatedAt||a.createdAt||a.date)+' · Effective '+esc(S.effectiveDateOf(data,a)||'—')+'</span></li>';}).join(''):'<li class="card">No applications yet.</li>';}
+  $('editApps').innerHTML=apps.length?apps.map(function(a){var n=docCount(a),eff=S.effectiveDateOf(data,a)||'—';
+   return '<li><div class="app-card" role="button" tabindex="0" data-app="'+esc(a.id)+'" aria-label="'+esc(a.type+', '+a.status+', '+n+' document'+(n===1?'':'s')+'. Open documents')+'">'
+   +'<div class="app-card-top"><span class="app-card-type">'+esc(a.type)+'</span>'+badge(a.status)+'</div>'
+   +'<dl class="app-card-meta"><div><dt>Effective</dt><dd>'+esc(eff)+'</dd></div><div><dt>Created</dt><dd>'+esc(a.createdAt||a.date)+'</dd></div><div><dt>Updated</dt><dd>'+esc(a.updatedAt||a.createdAt||a.date)+'</dd></div></dl>'
+   +'<div class="app-card-foot"><span>'+n+' document'+(n===1?'':'s')+'</span><span class="app-card-chev" aria-hidden="true">View documents ›</span></div></div></li>';}).join(''):'<li class="card">No applications yet.</li>';
+  S.save(data);
+  document.querySelectorAll('#editApps [data-app]').forEach(function(el){function go(){openDocs(el.getAttribute('data-app'),el);}
+   el.addEventListener('click',go);el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});});}
+ var DOC_LABEL={'received':'Received','pending review':'Pending review','approved':'Approved','missing':'Missing'};
+ function docPill(st){return '<span class="doc-pill doc-'+st.replace(' ','-')+'">'+DOC_LABEL[st]+'</span>';}
+ function openDocs(appId,opener){var a=appById(appId);if(!a)return;var visa=S.visaFor(data,a);var cl=S.ensureChecklist(data,a);S.save(data);
+  var got=cl.filter(function(r){return r.done;}),miss=cl.filter(function(r){return !r.done;});
+  var vname=visa?visa.name+' (effective '+(visa.effective||'—')+')':a.type;
+  $('docsTitle').textContent=a.type+' — documents';
+  $('docsSub').innerHTML='Client: <strong>'+esc(S.clientName(clientById(a.clientId)))+'</strong> · Visa: <a href="visas.html">'+esc(vname)+'</a> · '+badge(a.status);
+  $('docsSummary').textContent=cl.length?(got.length+' of '+cl.length+' required documents received'):'This visa has no required documents listed.';
+  $('docsList').innerHTML=got.length?got.map(function(r){var st=S.docStatus(r);return '<li class="doc-row"><div class="doc-main"><strong>'+esc(r.label.replace(/\s*\(sample\)/,''))+'</strong>'
+   +'<span class="muted">Required for <a href="visas.html">'+esc(visa?visa.name:a.type)+'</a> · File: '+esc(r.filename||'—')+'</span></div>'
+   +'<div class="doc-side">'+docPill(st)+'<span class="doc-date"><span class="muted">Submitted</span> '+esc(r.submittedAt||'—')+'</span>'
+   +'<button class="btn" type="button" data-dl="'+esc(r.docId)+'">View / Download</button></div></li>';}).join(''):'<li class="muted">No documents submitted yet.</li>';
+  $('docsMissing').innerHTML=miss.length?miss.map(function(r){return '<li>'+docPill('missing')+' '+esc(r.label.replace(/\s*\(sample\)/,''))+'</li>';}).join(''):'<li class="muted">None — every required document has been received.</li>';
+  $('docsMissingWrap').hidden=!cl.length;
+  document.querySelectorAll('#docsList [data-dl]').forEach(function(b){b.addEventListener('click',function(){var r=cl.find(function(x){return x.docId===b.getAttribute('data-dl');});downloadPlaceholder(a,r,visa);});});
+  openModal('docsModal',opener);}
+ /* Uploads store filenames only, so View/Download generates a small plain-text placeholder in the browser (Blob, .txt) named after the document. */
+ function downloadPlaceholder(a,r,visa){var base=(r.filename||('sample-'+S.slug(r.label))).replace(/\.[A-Za-z0-9]+$/,'');
+  var txt=['MKC Immigration Solutions Inc — placeholder file','','This is a generated placeholder. Only the file name was stored; no file contents are kept in this browser.','',
+   'Document: '+r.label,'Stored file name: '+(r.filename||'—'),'Application: '+a.type+' ('+a.id+')','Visa: '+(visa?visa.name+' (effective '+(visa.effective||'—')+')':'—'),
+   'Client: '+S.clientName(clientById(a.clientId)),'Status: '+DOC_LABEL[S.docStatus(r)],'Submitted: '+(r.submittedAt||'—'),'Generated: '+new Date().toISOString()].join('\n');
+  var url=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));var l=document.createElement('a');l.href=url;l.download=base+'.txt';document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(url);},1500);
+  $('docsMsg').textContent='Downloaded '+base+'.txt (placeholder).';}
  function openEdit(cid,btn){editingId=cid;var c=clientById(cid);$('editFirst').value=c.first||'';$('editMiddle').value=c.middle||'—';$('editLast').value=c.last||'';$('editEmail').value=c.email;$('editPhone').value=c.phone;$('editClientName').textContent=S.clientName(c);renderEditApps();openModal('editClientModal');if(btn)lastFocus=btn;}
  populateEffective($('newVisaType').value,$('newEffective'));
  $('newVisaType').addEventListener('change',function(){populateEffective($('newVisaType').value,$('newEffective'));});
  $('addClientBtn').addEventListener('click',function(){openModal('addClientModal');});
  $('addClientForm').addEventListener('submit',function(e){e.preventDefault();
   var first=$('newFirst').value.trim(),last=$('newLast').value.trim(),email=$('newEmail').value.trim(),type=$('newVisaType').value;
-  var err=''; if(!first)err='First name is required.'; else if(!last)err='Last name is required.'; else if(!email||email.indexOf('@')<1)err='A valid demo email is required (e.g. name@demo.ca).'; else if(!type)err='Visa application type is required.';
+  var err=''; if(!first)err='First name is required.'; else if(!last)err='Last name is required.'; else if(!email||email.indexOf('@')<1)err='A valid email is required (e.g. name@demo.ca).'; else if(!type)err='Visa application type is required.';
   $('addClientError').textContent=err; if(err)return;
   var v=selectedVisa($('newEffective'));if(!v){$('addClientError').textContent='Cannot save: a visa with an effective date is needed first. Add an effective date for this visa type on the Visas page.';return;}
   var c={id:'c-'+Date.now(),first:first,middle:$('newMiddle').value.trim(),last:last,email:email,phone:$('newPhone').value.trim(),address:'',language:'',dob:'',createdAt:S.today(),updatedAt:S.today()};
@@ -119,15 +151,15 @@ if(page==='clients'){
 if(page==='documents'){
  var pendingDelete=null;
  function render(){var list=data.documents;
-  $('docRows').innerHTML=list.map(function(d){return '<tr><td>'+esc(d.name)+'</td><td>'+esc(d.version)+'</td><td>'+esc((data.visas||[]).filter(function(v){return v.docIds.indexOf(d.id)>-1;}).map(function(v){return v.name;}).join(', ')||'—')+'</td><td>'+esc(d.status)+'</td><td>'+esc(d.createdAt)+'</td><td>'+esc(d.updatedAt)+'</td><td>'+d.uploaded+(d.sampleFileName?'<br><span class="muted">Sample file: '+esc(d.sampleFileName)+'</span>':'')+'</td><td style="white-space:nowrap"><button type="button" class="icon-btn" data-edit="'+d.id+'" aria-label="Edit document '+esc(d.name)+'" title="Edit document">'+PENCIL+'</button> <button type="button" class="icon-btn danger" data-del="'+d.id+'" aria-label="Delete document '+esc(d.name)+'" title="Delete document">'+TRASH+'</button></td></tr>';}).join('');
-  document.querySelectorAll('[data-edit]').forEach(function(b){b.addEventListener('click',function(){var d=S.docById(data,b.getAttribute('data-edit'));$('docId').value=d.id;$('docName').value=d.name;$('docVersion').value=d.version;$('docStatus').value=d.status;$('docFileName').textContent=d.sampleFileName?('Sample file (name only): '+d.sampleFileName):'';openModal('docModal');lastFocus=b;});});
+  $('docRows').innerHTML=list.map(function(d){return '<tr><td>'+esc(d.name)+'</td><td>'+esc(d.version)+'</td><td>'+esc((data.visas||[]).filter(function(v){return v.docIds.indexOf(d.id)>-1;}).map(function(v){return v.name;}).join(', ')||'—')+'</td><td>'+esc(d.status)+'</td><td>'+esc(d.createdAt)+'</td><td>'+esc(d.updatedAt)+'</td><td>'+d.uploaded+(d.sampleFileName?'<br><span class="muted">File: '+esc(d.sampleFileName)+'</span>':'')+'</td><td style="white-space:nowrap"><button type="button" class="icon-btn" data-edit="'+d.id+'" aria-label="Edit document '+esc(d.name)+'" title="Edit document">'+PENCIL+'</button> <button type="button" class="icon-btn danger" data-del="'+d.id+'" aria-label="Delete document '+esc(d.name)+'" title="Delete document">'+TRASH+'</button></td></tr>';}).join('');
+  document.querySelectorAll('[data-edit]').forEach(function(b){b.addEventListener('click',function(){var d=S.docById(data,b.getAttribute('data-edit'));$('docId').value=d.id;$('docName').value=d.name;$('docVersion').value=d.version;$('docStatus').value=d.status;$('docFileName').textContent=d.sampleFileName?('File (name only): '+d.sampleFileName):'';openModal('docModal');lastFocus=b;});});
   document.querySelectorAll('[data-del]').forEach(function(b){b.addEventListener('click',function(){pendingDelete=b.getAttribute('data-del');var d=S.docById(data,pendingDelete);$('deleteMsg').textContent='Delete “'+d.name+'”? It will also be removed from any visa required-document lists that use it.';openModal('confirmModal');lastFocus=b;});});}
  $('confirmDelete').addEventListener('click',function(){if(!pendingDelete)return;data.documents=data.documents.filter(function(d){return d.id!==pendingDelete;});data.visas.forEach(function(v){v.docIds=v.docIds.filter(function(id){return id!==pendingDelete;});v.updatedAt=S.today();});pendingDelete=null;S.save(data);closeModal('confirmModal');render();});
  $('addDocBtn').addEventListener('click',function(){$('docForm').reset();$('docId').value='';$('docFileName').textContent='';openModal('docModal');});
- $('docFile').addEventListener('change',function(){var d=S.docById(data,$('docId').value);var name=$('docFile').files[0]?$('docFile').files[0].name:'';if(name){$('docFileName').textContent='Sample file (name only): '+name;if(d){d.sampleFileName=name;d.updatedAt=S.today();S.save(data);render();}else{$('docFileName').dataset.pending=name;}}});
+ $('docFile').addEventListener('change',function(){var d=S.docById(data,$('docId').value);var name=$('docFile').files[0]?$('docFile').files[0].name:'';if(name){$('docFileName').textContent='File (name only): '+name;if(d){d.sampleFileName=name;d.updatedAt=S.today();S.save(data);render();}else{$('docFileName').dataset.pending=name;}}});
  $('docForm').addEventListener('submit',function(e){e.preventDefault();var today=S.today();var id=$('docId').value;
-  if(id){var d=S.docById(data,id);d.name=$('docName').value;delete d.type;delete d.applicationType;d.version=$('docVersion').value;d.status=$('docStatus').value;d.updatedAt=today;if($('docFileName').dataset.pending){d.sampleFileName=$('docFileName').dataset.pending;delete $('docFileName').dataset.pending;}$('docMsg').textContent='Updated sample document.';}
-  else{data.documents.push({id:'d-'+Date.now(),name:$('docName').value,version:$('docVersion').value||'v1.0',status:$('docStatus').value,createdAt:today,updatedAt:today,uploaded:0,sampleFileName:$('docFileName').dataset.pending||''});delete $('docFileName').dataset.pending;$('docMsg').textContent='Added sample document.';}
+  if(id){var d=S.docById(data,id);d.name=$('docName').value;delete d.type;delete d.applicationType;d.version=$('docVersion').value;d.status=$('docStatus').value;d.updatedAt=today;if($('docFileName').dataset.pending){d.sampleFileName=$('docFileName').dataset.pending;delete $('docFileName').dataset.pending;}$('docMsg').textContent='Updated document.';}
+  else{data.documents.push({id:'d-'+Date.now(),name:$('docName').value,version:$('docVersion').value||'v1.0',status:$('docStatus').value,createdAt:today,updatedAt:today,uploaded:0,sampleFileName:$('docFileName').dataset.pending||''});delete $('docFileName').dataset.pending;$('docMsg').textContent='Added document.';}
   S.save(data);closeModal('docModal');render();});
  render();
 }

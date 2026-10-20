@@ -5,7 +5,7 @@ a{color:var(--navy)}:focus-visible{outline:3px solid var(--gold);outline-offset:
 .side{background:var(--navy2);color:#dbe6f5;padding:24px 18px;display:flex;flex-direction:column;gap:8px}
 .side img{width:200px;max-width:100%;height:auto}
 .side nav{display:flex;flex-direction:column;gap:4px;margin-top:18px}.side nav a{color:#eef3fa;text-decoration:none;padding:11px 12px;border-radius:10px;font-weight:650}.side nav a[aria-current="page"]{background:rgba(198,161,91,.22);color:#fff}.side nav a:hover{background:rgba(255,255,255,.1)}
-.demo-pill{display:inline-block;background:var(--gold);color:#101d33;font-weight:900;font-size:.7rem;letter-spacing:.08em;padding:4px 9px;border-radius:999px;text-transform:uppercase}
+
 .main{padding:28px;min-width:0}.main h1{font-family:Georgia,serif;color:var(--navy);margin:8px 0}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin:20px 0}
 .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}
@@ -52,3 +52,26 @@ label{font-weight:700;display:block;margin:12px 0 5px}input,select,textarea{widt
 .policy-links{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:0 0 14px;font-size:.8rem}.policy-links a{color:#c9d6e8;text-decoration:none}.policy-links a:hover{text-decoration:underline}.policy-links .sep{color:#6f86a6}.mini-footer{background:transparent;margin-top:40px;padding-top:16px;border-top:1px solid #dfe5ee;font-size:.8rem;color:#5b6b80}.mini-footer .policy-links{margin:0 0 6px}.mini-footer .policy-links a{color:#0a1f3d}.mini-footer .policy-links .sep{color:#9aa7b8}.mini-disc{margin:0;overflow-wrap:anywhere}
 /* Login: the empty error <p> (margin reset by .card p) was the only thing between the password field and the button, so they touched. Give the button its own spacing and collapse the empty error. */
 #loginForm .login-error{color:#8a0e24;font-weight:700;margin:12px 0 0}#loginForm .login-error:empty{display:none}#loginForm .login-submit{display:flex;width:100%;margin-top:20px}
+/* Owner: application cards + documents modal */
+.app-cards{list-style:none;padding:0;margin:0;display:grid;gap:14px}
+.app-card{display:block;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
+.app-card:hover{border-color:var(--gold);box-shadow:0 8px 22px rgba(10,31,61,.10);transform:translateY(-1px)}
+.app-card:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.app-card-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.app-card-type{font-family:Georgia,serif;font-size:1.35rem;color:var(--navy);font-weight:700}
+.app-card-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0 0}
+.app-card-meta dt{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#6b7a90;font-weight:800}
+.app-card-meta dd{margin:4px 0 0;font-weight:600;color:var(--navy)}
+.app-card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-weight:700;color:var(--navy)}
+.app-card-chev{color:#8a6a2a;font-size:.9rem}
+.docs-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.docs-head h2{margin:0}
+.docs-summary{font-weight:800;color:var(--navy);background:#f6efe0;border-radius:10px;padding:10px 14px}
+.doc-list,.doc-missing{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.doc-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.doc-main{display:grid;gap:4px;min-width:0;flex:1 1 260px}.doc-main .muted{font-size:.88rem;overflow-wrap:anywhere}
+.doc-side{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.doc-date{font-size:.88rem;white-space:nowrap}
+.doc-missing li{display:flex;align-items:center;gap:10px}
+.doc-pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.76rem;font-weight:800;white-space:nowrap}
+.doc-received{background:#dceaff;color:#123b73}.doc-pending-review{background:#fdf0d0;color:#6b4a08}.doc-approved{background:#d9f2df;color:#14532d}.doc-missing .doc-pill,.doc-pill.doc-missing{background:#fadcdc;color:#7f1d1d}
+@media (max-width:600px){.app-card-meta{grid-template-columns:1fr 1fr 1fr;gap:8px}.app-card-meta dd{font-size:.88rem}
+ .modal-back#docsModal{padding:0}.docs-modal{min-height:100%;border-radius:0}.doc-side{width:100%;justify-content:space-between}}

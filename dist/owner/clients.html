@@ -1,11 +1,11 @@
 <!doctype html><html lang="en-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><title>Clients | MKC Demo Dashboard</title>
-<link rel="icon" href="../assets/favicon.ico"><link rel="stylesheet" href="../assets/dashboard.css?v=20261019b">
+<meta name="robots" content="noindex,nofollow"><title>Clients | MKC Dashboard (demo concept)</title>
+<link rel="icon" href="../assets/favicon.ico"><link rel="stylesheet" href="../assets/dashboard.css?v=20261019d">
 <script>(function(){var r=sessionStorage.getItem('mkc_demo_role');if(r!=='owner'){location.replace('../login.html');}})();</script>
 </head><body data-page="clients" data-role="owner">
 <div class="topbar"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="150" height="46"><button class="btn" type="button" data-menu aria-expanded="false" aria-controls="sideNav">☰ Menu</button></div>
-<div class="dash"><aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p><span class="demo-pill">Demo — sample data only</span></p><p>Signed in as<br><strong>Owner</strong></p><nav aria-label="Dashboard"><a href="dashboard.html">Dashboard</a><a href="clients.html" aria-current="page">Clients</a><a href="documents.html">Documents</a><a href="visas.html">Visas</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav><p style="margin-top:auto;font-size:.8rem;color:#93a9c6">Demo only — this login is not real security and there is no backend. Sample data lives in your browser (localStorage).</p></aside>
-<main class="main" id="main"><p><span class="demo-pill">Demo — sample data only</span></p><h1>Clients</h1><p class="muted">25 sample clients with fake @demo.ca addresses and 555 demo phone numbers. No real people.</p>
+<div class="dash"><aside class="side" id="sideNav"><img src="../assets/logo-lockup-dark.svg" alt="MKC Immigration Solutions Inc" width="200" height="61"><p>Signed in as<br><strong>Owner</strong></p><nav aria-label="Dashboard"><a href="dashboard.html">Dashboard</a><a href="clients.html" aria-current="page">Clients</a><a href="documents.html">Documents</a><a href="visas.html">Visas</a><a href="../index.html">View public site</a><a href="#" data-signout>Sign out</a></nav></aside>
+<main class="main" id="main"><h1>Clients</h1>
 <p><button class="btn navy" id="addClientBtn" type="button">＋ Add client</button></p>
 <form class="card filters" onsubmit="return false"><div><label for="search">Search by name or application type</label><input id="search" type="search"></div>
 <div><label for="fStatus">Filter by status</label><select id="fStatus"><option value="">All statuses</option><option>New</option><option>Active</option><option>Submitted</option><option>Approved</option><option>Denied</option><option>Cancelled</option></select></div>
@@ -13,7 +13,7 @@
 <div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Client</th><th>Email</th><th>Phone</th><th>Applications</th><th>Latest application</th><th>Edit</th></tr></thead><tbody id="clientRows"></tbody></table></div>
 <p><button class="btn" id="prevPage" type="button">← Previous</button> <span id="pageInfo" role="status"></span> <button class="btn" id="nextPage" type="button">Next →</button></p>
 <div class="modal-back" id="addClientModal" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="addClientTitle">
-<h2 id="addClientTitle">Add client</h2><p class="muted">Demo only — use demo-safe details (e.g. @demo.ca). Do not enter real personal information.</p>
+<h2 id="addClientTitle">Add client</h2>
 <form id="addClientForm"><label for="newFirst">First name *</label><input id="newFirst" required>
 <label for="newMiddle">Middle name (optional)</label><input id="newMiddle">
 <label for="newLast">Last name *</label><input id="newLast" required>
@@ -39,6 +39,12 @@
 <label for="editEffective">Effective date</label><select id="editEffective"></select>
 <p id="editAppError" role="alert" aria-live="assertive" style="color:#8a0e24;font-weight:700"></p>
 <p><button class="btn" id="addAppForClient" type="button">＋ Add application</button></p>
-<h3>This client’s applications</h3><ul id="editApps" style="list-style:none;padding:0;display:grid;gap:10px"></ul>
-<div class="actions"><button class="btn ghost" type="button" data-close="editClientModal">Close</button></div></div></div><footer class="mini-footer"><p class="policy-links"><a href="../privacy.html">Privacy Policy</a><span class="sep" aria-hidden="true">|</span><a href="../cookies.html">Cookies Policy</a></p><p class="mini-disc">Demo concept, not affiliated with or approved by MKC Immigration Solutions Inc.</p></footer></main></div>
-<script src="../assets/demo-data.js?v=20261019b"></script><script src="../assets/dashboard.js?v=20261019b"></script></body></html>
+<h3>This client’s applications</h3><ul id="editApps" class="app-cards"></ul>
+<div class="actions"><button class="btn ghost" type="button" data-close="editClientModal">Close</button></div></div></div><div class="modal-back" id="docsModal" hidden><div class="modal wide docs-modal" role="dialog" aria-modal="true" aria-labelledby="docsTitle">
+<div class="docs-head"><h2 id="docsTitle">Documents</h2><button class="btn ghost" type="button" data-close="docsModal" data-autofocus>← Back to client</button></div>
+<p id="docsSub" class="muted"></p><p id="docsSummary" class="docs-summary" role="status"></p>
+<h3>Submitted documents</h3><ul id="docsList" class="doc-list"></ul>
+<div id="docsMissingWrap"><h3>Missing required documents</h3><ul id="docsMissing" class="doc-missing"></ul></div>
+<p id="docsMsg" class="muted" role="status" aria-live="polite"></p>
+<div class="actions"><button class="btn navy" type="button" data-close="docsModal">Close</button></div></div></div><footer class="mini-footer"><p class="policy-links"><a href="../privacy.html">Privacy Policy</a><span class="sep" aria-hidden="true">|</span><a href="../cookies.html">Cookies Policy</a></p><p class="mini-disc">Demo concept, not affiliated with or approved by MKC Immigration Solutions Inc.</p></footer></main></div>
+<script src="../assets/demo-data.js?v=20261019d"></script><script src="../assets/dashboard.js?v=20261019d"></script></body></html>

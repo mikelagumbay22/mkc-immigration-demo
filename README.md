@@ -63,5 +63,5 @@ Every image is now used on exactly one page (a video's poster counts as its clip
 - Removed the now-unused `ca-lake-canoe-*` and `ca-rockies-jet-*` stills.
 
 ## Cache busting
-Every local CSS/JS reference carries `?v=<version>` (currently `20261019b`). Bump it on every publish, e.g.:
+Every local CSS/JS reference carries `?v=<version>` (currently `20261019d`). Bump it on every publish, e.g.:
 `NEW=20261020a; grep -rlE '\.(css|js)\?v=' site --include='*.html' | xargs sed -i -E "s/\.(css|js)\?v=[A-Za-z0-9]+/.\1?v=$NEW/g"`

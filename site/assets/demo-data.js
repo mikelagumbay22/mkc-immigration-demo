@@ -62,8 +62,8 @@ function migrate(old){
  return s;
 }
 function stripDocTypes(d){var changed=false;(d.documents||[]).forEach(function(doc){if('type' in doc){delete doc.type;changed=true;}if('applicationType' in doc){delete doc.applicationType;changed=true;}});return changed;}
-function load(){try{var raw=localStorage.getItem(KEY);if(raw){var d=JSON.parse(raw);if(d&&d.version===2){var ch=stripDocTypes(d);if(migrateApps(d))ch=true;if(ch)save(d);return d;}}
- var oldRaw=localStorage.getItem(OLDKEY); if(oldRaw){var m=migrate(JSON.parse(oldRaw)); save(m); return m;}}catch(e){} var s=seed();save(s);return s;}
+function load(){try{var raw=localStorage.getItem(KEY);if(raw){var d=JSON.parse(raw);if(d&&d.version===2){var ch=stripDocTypes(d);if(migrateApps(d))ch=true;if(migrateDocs(d))ch=true;if(ch)save(d);return d;}}
+ var oldRaw=localStorage.getItem(OLDKEY); if(oldRaw){var m=migrate(JSON.parse(oldRaw)); save(m); return m;}}catch(e){} var s=seed();migrateDocs(s);save(s);return s;}
 function save(d){localStorage.setItem(KEY,JSON.stringify(d));}
 function reset(){localStorage.removeItem(KEY);localStorage.removeItem(OLDKEY);return load();}
 function visaFor(data,app){if(app.visaId){var byId=(data.visas||[]).find(function(v){return v.id===app.visaId;});if(byId)return byId;}return (data.visas||[]).find(function(v){return v.name===app.type;});}
@@ -78,9 +78,25 @@ function docById(data,id){return (data.documents||[]).find(function(d){return d.
 function ensureChecklist(data,app){
  var visa=visaFor(data,app); var stored={}; (data.checklists[app.id]||[]).forEach(function(r){stored[r.docId]=r;});
  var ids=visa?visa.docIds:[];
- var out=ids.map(function(id){var doc=docById(data,id);var prev=stored[id]||{};return {docId:id,label:doc?doc.name:('Sample document '+id),done:!!prev.done,filename:prev.filename||''};});
+ var out=ids.map(function(id){var doc=docById(data,id);var prev=stored[id]||{};var r={docId:id,label:doc?doc.name:('Sample document '+id),done:!!prev.done,filename:prev.filename||''};if(prev.status)r.status=prev.status;if(prev.submittedAt)r.submittedAt=prev.submittedAt;return r;});
  data.checklists[app.id]=out; return out;}
+/* Document submissions (v2, docsV:1). Each checklist row may carry status ('received'|'pending review'|'approved')
+   and submittedAt (YYYY-MM-DD). Rows that are not done are 'missing'. Safe, one-time migration:
+   - rows already Done keep their filename; missing status/date get defaults ('received', the app's updated/created date)
+   - an application with NO submitted rows gets a few sample submissions (filenames only) — rows a user has touched are never changed */
+var DOC_STATUSES=['received','pending review','approved'];
+function slug(t){return String(t||'document').toLowerCase().replace(/\(sample\)/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+function addDays(d,n){var t=Date.parse(d);if(isNaN(t))return today();return new Date(t+n*864e5).toISOString().slice(0,10);}
+function docStatus(r){return r&&r.done?(r.status||'received'):'missing';}
+function migrateDocs(data){if(data.docsV>=1)return false;data.checklists=data.checklists||{};
+ (data.applications||[]).forEach(function(a,ai){var cl=ensureChecklist(data,a);var base=a.createdAt||a.date||'2026-09-01';
+  var any=cl.some(function(r){return r.done||r.filename;});
+  if(any){cl.forEach(function(r){if(r.done){if(!r.status)r.status='received';if(!r.submittedAt)r.submittedAt=a.updatedAt||base;}});return;}
+  if(a.status==='New'||!cl.length)return; // brand-new applications start with nothing submitted
+  var n=Math.max(1,cl.length-1-(ai%2)); // leave 1–2 required docs missing
+  cl.slice(0,n).forEach(function(r,i){r.done=true;r.filename='sample-'+slug(r.label)+'.pdf';r.status=DOC_STATUSES[(ai+i)%3];r.submittedAt=addDays(base,3+i*4);});});
+ data.docsV=1;return true;}
 function progress(data,app){var visa=visaFor(data,app);if(visa){if(!visa.docIds.length)return 100;var stored={};(data.checklists[app.id]||[]).forEach(function(r){stored[r.docId]=r;});var done=visa.docIds.filter(function(id){return stored[id]&&stored[id].done;}).length;return Math.round(done/visa.docIds.length*100);}return typeof app.progress==='number'?app.progress:0;}
 function clientName(c){return [c.first,c.middle,c.last].filter(Boolean).join(' ');}
-window.MKCStore={KEY:KEY,OLDKEY:OLDKEY,TYPES:TYPES,STATUSES:STATUSES,today:today,alias:alias,load:load,save:save,reset:reset,progress:progress,clientName:clientName,visaFor:visaFor,distinctTypes:distinctTypes,visasOfType:visasOfType,effectiveDateOf:effectiveDateOf,docById:docById,ensureChecklist:ensureChecklist,esc:function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}};
+window.MKCStore={KEY:KEY,OLDKEY:OLDKEY,TYPES:TYPES,STATUSES:STATUSES,today:today,alias:alias,load:load,save:save,reset:reset,progress:progress,clientName:clientName,visaFor:visaFor,distinctTypes:distinctTypes,visasOfType:visasOfType,effectiveDateOf:effectiveDateOf,docById:docById,ensureChecklist:ensureChecklist,docStatus:docStatus,DOC_STATUSES:DOC_STATUSES,slug:slug,esc:function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}};
 })();
